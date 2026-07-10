@@ -3,57 +3,48 @@
 import { motion } from 'framer-motion'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase'
 
-const projects = [
-  {
-    id: 1,
-    title: 'E-Commerce Platform',
-    category: 'Web Development',
-    description: 'Full-stack e-commerce solution with real-time inventory management',
-    technologies: ['Next.js', 'React', 'Node.js', 'MongoDB', 'Stripe'],
-  },
-  {
-    id: 2,
-    title: 'Mobile Banking App',
-    category: 'Mobile Development',
-    description: 'Secure banking application with biometric authentication',
-    technologies: ['Flutter', 'Firebase', 'REST API', 'Encryption'],
-  },
-  {
-    id: 3,
-    title: 'AI Chat Assistant',
-    category: 'AI Automation',
-    description: 'Intelligent chatbot powered by advanced NLP algorithms',
-    technologies: ['Python', 'OpenAI API', 'Machine Learning', 'Node.js'],
-  },
-  {
-    id: 4,
-    title: 'Enterprise CRM',
-    category: 'CRM Solutions',
-    description: 'Custom CRM system for managing 50,000+ customer records',
-    technologies: ['React', 'PostgreSQL', 'AWS', 'Python'],
-  },
-  {
-    id: 5,
-    title: 'Cloud Migration',
-    category: 'Cloud Solutions',
-    description: 'Seamless migration of legacy systems to AWS infrastructure',
-    technologies: ['AWS', 'Kubernetes', 'Docker', 'Terraform'],
-  },
-  {
-    id: 6,
-    title: 'Design System',
-    category: 'UI/UX Design',
-    description: 'Comprehensive design system for enterprise applications',
-    technologies: ['Figma', 'React', 'Tailwind CSS', 'Storybook'],
-  },
-]
-
-const categories = ['All', ...new Set(projects.map((p) => p.category))]
+interface Project {
+  id: string
+  company_name: string
+  name: string
+  category: string
+  description: string
+  status: string
+  website_url: string
+  logo_url: string
+  created_at: string
+}
 
 export default function PortfolioPage() {
+  const [projects, setProjects] = useState<Project[]>([])
+  const [loading, setLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState('All')
+
+  useEffect(() => {
+    fetchProjects()
+  }, [])
+
+  const fetchProjects = async () => {
+    try {
+      setLoading(true)
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      setProjects(data || [])
+    } catch (error) {
+      console.error('Error fetching projects:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const categories = ['All', ...new Set(projects.map((p) => p.category))]
 
   const filteredProjects =
     selectedCategory === 'All'
@@ -65,7 +56,7 @@ export default function PortfolioPage() {
       <Navigation />
 
       {/* Hero Section */}
-      <section className="relative w-full min-h-screen bg-gradient-to-b from-dark-surface to-dark-bg pt-32 pb-20">
+      <section className="relative w-full min-h-screen bg-gradient-to-b from-dark-surface to-dark-bg pt-56 pb-20">
         <div className="max-w-7xl mx-auto px-4">
           <motion.div
             className="text-center mb-20"
@@ -106,60 +97,92 @@ export default function PortfolioPage() {
           </motion.div>
 
           {/* Projects Grid */}
-          <motion.div
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8 }}
-          >
-            {filteredProjects.map((project, index) => (
-              <motion.div
-                key={project.id}
-                className="glass rounded-2xl p-8 cursor-pointer group"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{
-                  y: -10,
-                  boxShadow: '0 0 40px rgba(255, 107, 53, 0.3)',
-                }}
-              >
-                {/* Category Tag */}
-                <div className="inline-block px-3 py-1 bg-orange-primary/20 text-orange-primary text-sm font-semibold rounded-full mb-4">
-                  {project.category}
-                </div>
-
-                {/* Title */}
-                <h3 className="text-2xl font-bold mb-3 group-hover:text-orange-primary transition-colors">
-                  {project.title}
-                </h3>
-
-                {/* Description */}
-                <p className="text-gray-light/70 mb-6">{project.description}</p>
-
-                {/* Technologies */}
-                <div className="flex flex-wrap gap-2">
-                  {project.technologies.map((tech, i) => (
-                    <span
-                      key={i}
-                      className="text-xs px-3 py-1 bg-dark-bg border border-orange-primary/30 rounded-full text-gray-light/70"
-                    >
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-
-                {/* View Project Link */}
+          {loading ? (
+            <div className="text-center py-20">
+              <p className="text-gray-light/60">Loading projects...</p>
+            </div>
+          ) : filteredProjects.length > 0 ? (
+            <motion.div
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.8 }}
+            >
+              {filteredProjects.map((project, index) => (
                 <motion.a
-                  href="#"
-                  className="inline-flex items-center gap-2 mt-6 text-orange-primary font-semibold group-hover:gap-4 transition-all"
+                  key={project.id}
+                  href={project.website_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="glass rounded-2xl p-8 cursor-pointer group block h-full flex flex-col"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.1 }}
+                  whileHover={{
+                    y: -10,
+                    boxShadow: '0 0 40px rgba(255, 107, 53, 0.3)',
+                  }}
                 >
-                  View Project
-                  <span>→</span>
+                  {/* Company Logo */}
+                  {project.logo_url && (
+                    <div className="mb-4 flex justify-center">
+                      <img
+                        src={project.logo_url}
+                        alt={project.company_name}
+                        className="h-16 object-contain"
+                      />
+                    </div>
+                  )}
+
+                  {/* Status Tag */}
+                  <div className={`inline-block px-3 py-1 text-sm font-semibold rounded-full mb-4 ${
+                    project.status === 'Completed'
+                      ? 'bg-green-500/20 text-green-400'
+                      : project.status === 'Pending'
+                      ? 'bg-yellow-500/20 text-yellow-400'
+                      : 'bg-orange-primary/20 text-orange-primary'
+                  }`}>
+                    {project.status}
+                  </div>
+
+                  {/* Category Tag */}
+                  <div className="inline-block px-3 py-1 bg-orange-primary/20 text-orange-primary text-sm font-semibold rounded-full mb-4 ml-2">
+                    {project.category}
+                  </div>
+
+                  {/* Company Name */}
+                  <p className="text-sm text-orange-primary font-semibold mb-2">
+                    {project.company_name}
+                  </p>
+
+                  {/* Project Title */}
+                  <h3 className="text-2xl font-bold mb-3 group-hover:text-orange-primary transition-colors">
+                    {project.name}
+                  </h3>
+
+                  {/* Description */}
+                  <p className="text-gray-light/70 mb-6">{project.description}</p>
+
+                  {/* Date */}
+                  <p className="text-sm text-gray-light/50 mb-4">
+                    {new Date(project.created_at).toLocaleDateString()}
+                  </p>
+
+                  {/* Visit Website Link */}
+                  <motion.div
+                    className="inline-flex items-center gap-2 mt-auto text-orange-primary font-semibold group-hover:gap-4 transition-all"
+                  >
+                    Visit Website
+                    <span>↗</span>
+                  </motion.div>
                 </motion.a>
-              </motion.div>
-            ))}
-          </motion.div>
+              ))}
+            </motion.div>
+          ) : (
+            <div className="text-center py-20">
+              <p className="text-gray-light/60">No projects yet</p>
+            </div>
+          )}
         </div>
       </section>
 

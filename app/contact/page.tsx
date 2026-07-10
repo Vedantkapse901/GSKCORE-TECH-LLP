@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { useState } from 'react'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
+import { supabase } from '@/lib/supabase'
 
 const contactMethods = [
   {
@@ -30,9 +31,11 @@ export default function ContactPage() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    company: '',
+    subject: '',
     message: '',
   })
+  const [loading, setLoading] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -41,10 +44,35 @@ export default function ContactPage() {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Form submitted:', formData)
-    // Handle form submission here
+
+    try {
+      setLoading(true)
+      const { error } = await supabase
+        .from('contact_submissions')
+        .insert([
+          {
+            name: formData.name,
+            email: formData.email,
+            subject: formData.subject,
+            message: formData.message,
+            created_at: new Date().toISOString(),
+          },
+        ])
+
+      if (error) throw error
+
+      setSubmitted(true)
+      setFormData({ name: '', email: '', subject: '', message: '' })
+
+      setTimeout(() => setSubmitted(false), 5000)
+    } catch (error) {
+      console.error('Error submitting form:', error)
+      alert('Failed to send message. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -52,7 +80,7 @@ export default function ContactPage() {
       <Navigation />
 
       {/* Hero Section */}
-      <section className="relative w-full min-h-screen bg-gradient-to-b from-dark-surface to-dark-bg pt-32 pb-20">
+      <section className="relative w-full min-h-screen bg-gradient-to-b from-dark-surface to-dark-bg pt-56 pb-20">
         <div className="max-w-7xl mx-auto px-4">
           <motion.div
             className="text-center mb-20"
@@ -99,6 +127,16 @@ export default function ContactPage() {
             <div className="glass rounded-2xl p-12">
               <h2 className="text-3xl font-bold mb-8">Send us a Message</h2>
 
+              {submitted && (
+                <motion.div
+                  className="mb-6 p-4 bg-green-500/20 border border-green-500 rounded-lg text-green-400"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                >
+                  ✓ Message sent successfully! We'll get back to you soon.
+                </motion.div>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Name */}
                 <div>
@@ -111,6 +149,7 @@ export default function ContactPage() {
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
+                    required
                     className="w-full px-6 py-3 bg-dark-bg border border-orange-primary/30 rounded-lg text-gray-light placeholder-gray-light/50 focus:outline-none focus:border-orange-primary transition-colors"
                     placeholder="Your name"
                     whileFocus={{ boxShadow: '0 0 20px rgba(255, 107, 53, 0.3)' }}
@@ -128,25 +167,27 @@ export default function ContactPage() {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
+                    required
                     className="w-full px-6 py-3 bg-dark-bg border border-orange-primary/30 rounded-lg text-gray-light placeholder-gray-light/50 focus:outline-none focus:border-orange-primary transition-colors"
                     placeholder="your.email@example.com"
                     whileFocus={{ boxShadow: '0 0 20px rgba(255, 107, 53, 0.3)' }}
                   />
                 </div>
 
-                {/* Company */}
+                {/* Subject */}
                 <div>
-                  <label htmlFor="company" className="block text-sm font-semibold mb-2">
-                    Company Name
+                  <label htmlFor="subject" className="block text-sm font-semibold mb-2">
+                    Subject
                   </label>
                   <motion.input
                     type="text"
-                    id="company"
-                    name="company"
-                    value={formData.company}
+                    id="subject"
+                    name="subject"
+                    value={formData.subject}
                     onChange={handleChange}
+                    required
                     className="w-full px-6 py-3 bg-dark-bg border border-orange-primary/30 rounded-lg text-gray-light placeholder-gray-light/50 focus:outline-none focus:border-orange-primary transition-colors"
-                    placeholder="Your company"
+                    placeholder="What is this about?"
                     whileFocus={{ boxShadow: '0 0 20px rgba(255, 107, 53, 0.3)' }}
                   />
                 </div>
@@ -161,6 +202,7 @@ export default function ContactPage() {
                     name="message"
                     value={formData.message}
                     onChange={handleChange}
+                    required
                     rows={6}
                     className="w-full px-6 py-3 bg-dark-bg border border-orange-primary/30 rounded-lg text-gray-light placeholder-gray-light/50 focus:outline-none focus:border-orange-primary transition-colors resize-none"
                     placeholder="Tell us about your project..."
@@ -171,11 +213,12 @@ export default function ContactPage() {
                 {/* Submit Button */}
                 <motion.button
                   type="submit"
-                  className="w-full px-8 py-4 bg-gradient-to-r from-orange-primary to-red-orange rounded-lg font-semibold text-lg hover:shadow-lg hover:shadow-orange-primary/50 transition-all"
+                  disabled={loading}
+                  className="w-full px-8 py-4 bg-gradient-to-r from-orange-primary to-red-orange rounded-lg font-semibold text-lg hover:shadow-lg hover:shadow-orange-primary/50 transition-all disabled:opacity-50"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  Send Message
+                  {loading ? 'Sending...' : 'Send Message'}
                 </motion.button>
               </form>
             </div>
