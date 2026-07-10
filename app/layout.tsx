@@ -4,6 +4,10 @@ import './globals.css'
 export const metadata: Metadata = {
   title: 'GSKCORE TECH LLP - Building Tomorrow\'s Digital Infrastructure',
   description: 'Transform ambitious ideas into scalable digital products. Custom websites, mobile apps, AI automation, and enterprise solutions.',
+  icons: {
+    icon: '/logo1.png',
+    apple: '/logo1.png',
+  },
 }
 
 export const viewport: Viewport = {
