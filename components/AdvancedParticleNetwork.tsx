@@ -102,8 +102,13 @@ export default function AdvancedParticleNetwork() {
 
     let time = 0
 
+    // Responsive particle count based on screen width
+    const width = container.offsetWidth
+    const particleCount = width < 640 ? 25 : width < 1024 ? 30 : 40
+    const connectionDistance = width < 640 ? 150 : width < 1024 ? 175 : 200
+
     const nodes: NetworkNode[] = []
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < particleCount; i++) {
       nodes.push({
         x: Math.random() * canvas.offsetWidth,
         y: Math.random() * canvas.offsetHeight,
@@ -149,7 +154,7 @@ export default function AdvancedParticleNetwork() {
           const dy = nodes[j].y - nodes[i].y
           const dist = Math.sqrt(dx * dx + dy * dy)
 
-          if (dist < 200) {
+          if (dist < connectionDistance) {
             ctx.beginPath()
             ctx.moveTo(nodes[i].x, nodes[i].y)
             ctx.lineTo(nodes[j].x, nodes[j].y)
