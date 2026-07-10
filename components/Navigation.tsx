@@ -5,11 +5,11 @@ import { useState } from 'react'
 import Image from 'next/image'
 
 const navItems = [
-  { label: 'Home', href: '#home' },
-  { label: 'Services', href: '#services' },
-  { label: 'Portfolio', href: '#portfolio' },
-  { label: 'About', href: '#about' },
-  { label: 'Contact', href: '#contact' },
+  { label: 'Home', href: '/' },
+  { label: 'Services', href: '/services' },
+  { label: 'Portfolio', href: '/portfolio' },
+  { label: 'About', href: '/about' },
+  { label: 'Contact', href: '/contact' },
 ]
 
 export default function Navigation() {
@@ -20,12 +20,12 @@ export default function Navigation() {
       <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
         {/* Logo */}
         <motion.a
-          href="#home"
-          className="w-12 h-12 relative"
+          href="/"
+          className="w-14 h-14 relative"
           whileHover={{ scale: 1.05 }}
         >
           <Image
-            src="/logo.svg"
+            src="/logo1.png"
             alt="GSKCORE Logo"
             fill
             className="object-contain"

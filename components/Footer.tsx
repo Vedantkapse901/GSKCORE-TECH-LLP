@@ -36,9 +36,9 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           {/* Brand */}
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}>
-            <div className="w-16 h-16 mb-4 relative">
+            <div className="w-20 h-20 mb-4 relative">
               <Image
-                src="/logo.svg"
+                src="/logo1.png"
                 alt="GSKCORE Logo"
                 fill
                 className="object-contain"
