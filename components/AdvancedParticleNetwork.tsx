@@ -68,11 +68,11 @@ export default function AdvancedParticleNetwork() {
     // Desktop (> 1024px)
     else {
       buttonSize = 'w-14 h-14'
-      innerOrbitRadius = 120
-      outerOrbitRadius = 200
+      innerOrbitRadius = 90
+      outerOrbitRadius = 140
       logoSize = 'w-20 h-20'
       fontSize = 'text-2xl'
-      ringRadius = 160
+      ringRadius = 120
     }
 
     setResponsiveValues({ buttonSize, innerOrbitRadius, outerOrbitRadius, logoSize, fontSize, ringRadius })
@@ -197,7 +197,7 @@ export default function AdvancedParticleNetwork() {
         y: [-innerR, -innerR * 0.707, 0, innerR * 0.707, innerR, innerR * 0.707, 0, -innerR * 0.707, -innerR],
       },
       contact: {
-        x: [0, -outerR * 0.707, -outerR, -outerR * 0.707, 0, outerR * 0.707, outerR, outerR * 0.707, 0],
+        x: [0, outerR * 0.707, outerR, outerR * 0.707, 0, -outerR * 0.707, -outerR, -outerR * 0.707, 0],
         y: [outerR, outerR * 0.707, 0, -outerR * 0.707, -outerR, -outerR * 0.707, 0, outerR * 0.707, outerR],
       },
     }
