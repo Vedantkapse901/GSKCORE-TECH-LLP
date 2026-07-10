@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
+import Link from 'next/link'
 
 interface DashboardStats {
   totalProjects: number
@@ -19,6 +20,7 @@ export default function AdminDashboard() {
     recentProjects: [],
   })
   const [loading, setLoading] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(true)
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -62,12 +64,45 @@ export default function AdminDashboard() {
   ]
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* Page Header */}
-      <motion.div className="mb-12" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-4xl md:text-5xl font-bold mb-2">Dashboard</h1>
-        <p className="text-gray-light/60">Manage your projects, clients, and services</p>
+    <div className="flex h-screen">
+      {/* Sidebar */}
+      <motion.div
+        className="fixed left-0 top-20 h-[calc(100vh-80px)] bg-dark-surface border-r border-orange-primary/20 overflow-y-auto z-40"
+        animate={{ width: sidebarOpen ? 256 : 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        {sidebarOpen && (
+          <div className="p-6 space-y-4">
+            <Link href="/admin" className="block px-4 py-2 rounded-lg hover:bg-orange-primary/10 text-gray-light">Dashboard</Link>
+            <Link href="/admin/projects" className="block px-4 py-2 rounded-lg hover:bg-orange-primary/10 text-gray-light">Projects</Link>
+            <Link href="/admin/services" className="block px-4 py-2 rounded-lg hover:bg-orange-primary/10 text-gray-light">Services</Link>
+            <hr className="border-orange-primary/20" />
+            <a href="/" className="block px-4 py-2 rounded-lg hover:bg-orange-primary/10 text-gray-light">Back to Site</a>
+          </div>
+        )}
       </motion.div>
+
+      {/* Main Content */}
+      <div className={`flex-1 ${sidebarOpen ? 'ml-64' : 'ml-0'} transition-all duration-300`}>
+        {/* Hamburger Button */}
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="fixed top-6 right-4 z-50 p-2 rounded-lg hover:bg-orange-primary/20"
+        >
+          <motion.div animate={sidebarOpen ? { rotate: 90 } : { rotate: 0 }}>
+            <svg className="w-6 h-6 text-orange-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </motion.div>
+        </button>
+
+        {/* Page Content */}
+        <div className="px-4 py-8 pt-4">
+          {/* Page Header */}
+          <motion.div className="mb-12" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <h1 className="text-4xl md:text-5xl font-bold mb-2">Dashboard</h1>
+            <p className="text-gray-light/60">Manage your projects, clients, and services</p>
+          </motion.div>
 
       {/* Stats Grid */}
       <motion.div
@@ -183,6 +218,8 @@ export default function AdminDashboard() {
           </a>
         ))}
       </motion.div>
+        </div>
+      </div>
     </div>
   )
 }
