@@ -28,11 +28,11 @@ export default function Navigation() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-lg bg-dark-bg/80 border-b border-orange-primary/10">
-      <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-        {/* Logo */}
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 py-2 sm:py-4 flex items-center justify-between">
+        {/* Logo - Responsive sizing */}
         <motion.a
           href="/"
-          className="w-28 h-28 relative flex-shrink-0"
+          className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-28 lg:h-28 relative flex-shrink-0"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
@@ -105,13 +105,15 @@ export default function Navigation() {
               ))}
 
               {/* Mobile CTA */}
-              <motion.button
-                className="w-full mt-6 px-6 py-3 bg-gradient-to-r from-orange-primary to-red-orange text-white rounded-lg font-semibold"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                Get Started
-              </motion.button>
+              <Link href="/contact" onClick={() => setIsOpen(false)} className="w-full">
+                <motion.button
+                  className="w-full mt-6 px-6 py-3 bg-gradient-to-r from-orange-primary to-red-orange text-white rounded-lg font-semibold"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Get Started
+                </motion.button>
+              </Link>
             </div>
           </motion.div>
         )}

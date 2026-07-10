@@ -178,15 +178,16 @@ export default function AdvancedParticleNetwork() {
   }, [responsiveValues.ringRadius])
 
   const getOrbitKeyframes = () => {
-    const r = responsiveValues.orbitRadius
+    const innerR = responsiveValues.orbitRadius * 0.6
+    const outerR = responsiveValues.orbitRadius
     return {
       portfolio: {
-        x: [0, r * 0.7, r, r * 0.7, 0, -r * 0.7, -r, -r * 0.7, 0],
-        y: [-r, -r * 0.7, 0, r * 0.7, r, r * 0.7, 0, -r * 0.7, -r],
+        x: [0, innerR * 0.707, innerR, innerR * 0.707, 0, -innerR * 0.707, -innerR, -innerR * 0.707, 0],
+        y: [-innerR, -innerR * 0.707, 0, innerR * 0.707, innerR, innerR * 0.707, 0, -innerR * 0.707, -innerR],
       },
       contact: {
-        x: [0, -r * 0.7, -r, -r * 0.7, 0, r * 0.7, r, r * 0.7, 0],
-        y: [r, r * 0.7, 0, -r * 0.7, -r, -r * 0.7, 0, r * 0.7, r],
+        x: [0, -outerR * 0.707, -outerR, -outerR * 0.707, 0, outerR * 0.707, outerR, outerR * 0.707, 0],
+        y: [outerR, outerR * 0.707, 0, -outerR * 0.707, -outerR, -outerR * 0.707, 0, outerR * 0.707, outerR],
       },
     }
   }
