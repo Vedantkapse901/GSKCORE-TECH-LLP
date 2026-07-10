@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { useState } from 'react'
+import Image from 'next/image'
 
 const navItems = [
   { label: 'Home', href: '#home' },
@@ -16,14 +17,21 @@ export default function Navigation() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 py-6 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
         {/* Logo */}
-        <motion.div
-          className="text-2xl font-bold bg-gradient-to-r from-orange-primary to-orange-bright bg-clip-text text-transparent"
+        <motion.a
+          href="#home"
+          className="w-12 h-12 relative"
           whileHover={{ scale: 1.05 }}
         >
-          GSKCORE
-        </motion.div>
+          <Image
+            src="/logo.svg"
+            alt="GSKCORE Logo"
+            fill
+            className="object-contain"
+            priority
+          />
+        </motion.a>
 
         {/* Desktop menu */}
         <div className="hidden md:flex gap-8">

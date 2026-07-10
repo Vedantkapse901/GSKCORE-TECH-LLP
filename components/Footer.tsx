@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { useEffect, useRef } from 'react'
+import Image from 'next/image'
 
 export default function Footer() {
   const beamRef = useRef<HTMLDivElement>(null)
@@ -35,9 +36,14 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           {/* Brand */}
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}>
-            <h3 className="text-2xl font-bold bg-gradient-to-r from-orange-primary to-orange-bright bg-clip-text text-transparent mb-4">
-              GSKCORE
-            </h3>
+            <div className="w-16 h-16 mb-4 relative">
+              <Image
+                src="/logo.svg"
+                alt="GSKCORE Logo"
+                fill
+                className="object-contain"
+              />
+            </div>
             <p className="text-gray-light/60 text-sm leading-relaxed">
               Building tomorrow's digital infrastructure through cutting-edge technology and creative
               excellence.
