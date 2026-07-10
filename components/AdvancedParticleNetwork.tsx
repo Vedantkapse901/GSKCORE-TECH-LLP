@@ -2,33 +2,25 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
+import Link from 'next/link'
 
-interface Particle {
+interface NetworkNode {
   x: number
   y: number
   vx: number
   vy: number
-  size: number
   opacity: number
-  hue: number
-}
-
-interface Cluster {
-  x: number
-  y: number
-  particles: Particle[]
-  label: string
-  value: number
-  coreSize: number
 }
 
 export default function AdvancedParticleNetwork() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [stats, setStats] = useState({ fps: 0, particles: 0 })
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [stats, setStats] = useState({ fps: 0 })
 
   useEffect(() => {
     const canvas = canvasRef.current
-    if (!canvas) return
+    const container = containerRef.current
+    if (!canvas || !container) return
 
     const ctx = canvas.getContext('2d')
     if (!ctx) return
@@ -44,139 +36,124 @@ export default function AdvancedParticleNetwork() {
 
     let time = 0
 
-    // Create data clusters with FIXED positions (no mouse interaction)
-    const clusters: Cluster[] = [
-      { x: canvas.offsetWidth * 0.15, y: canvas.offsetHeight * 0.3, particles: [], label: 'Web Dev', value: 95, coreSize: 0 },
-      { x: canvas.offsetWidth * 0.85, y: canvas.offsetHeight * 0.3, particles: [], label: 'Mobile', value: 87, coreSize: 0 },
-      { x: canvas.offsetWidth * 0.5, y: canvas.offsetHeight * 0.75, particles: [], label: 'AI/ML', value: 92, coreSize: 0 },
-      { x: canvas.offsetWidth * 0.25, y: canvas.offsetHeight * 0.6, particles: [], label: 'Cloud', value: 89, coreSize: 0 },
-      { x: canvas.offsetWidth * 0.75, y: canvas.offsetHeight * 0.6, particles: [], label: 'DevOps', value: 91, coreSize: 0 },
-    ]
+    // Create digital network nodes
+    const nodes: NetworkNode[] = []
+    for (let i = 0; i < 40; i++) {
+      nodes.push({
+        x: Math.random() * canvas.offsetWidth,
+        y: Math.random() * canvas.offsetHeight,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
+        opacity: Math.random() * 0.4 + 0.2,
+      })
+    }
 
-    // Initialize particles for each cluster
-    clusters.forEach((cluster, clusterIdx) => {
-      for (let i = 0; i < 30; i++) {
-        const angle = Math.random() * Math.PI * 2
-        const distance = Math.random() * 50 + 5
-        cluster.particles.push({
-          x: cluster.x + Math.cos(angle) * distance,
-          y: cluster.y + Math.sin(angle) * distance,
-          vx: (Math.random() - 0.5) * 0.8,
-          vy: (Math.random() - 0.5) * 0.8,
-          size: Math.random() * 1.5 + 0.5,
-          opacity: Math.random() * 0.6 + 0.4,
-          hue: 20 + clusterIdx * 8,
-        })
-      }
-    })
+    const centerX = canvas.offsetWidth / 2
+    const centerY = canvas.offsetHeight / 2
+
+    // Atom electron positions (orbiting around nucleus)
+    const electron1 = { angle: 0, radius: 120, speed: 0.01 }
+    const electron2 = { angle: Math.PI, radius: 120, speed: 0.01 }
 
     let frameCount = 0
     let lastTime = Date.now()
 
     const animate = () => {
-      // Clear canvas
-      ctx.fillStyle = 'rgba(10, 10, 10, 0.2)'
+      // Clear with fade
+      ctx.fillStyle = 'rgba(10, 10, 10, 0.1)'
       ctx.fillRect(0, 0, canvas.offsetWidth, canvas.offsetHeight)
 
       time += 0.016
 
-      // Update and draw each cluster independently
-      clusters.forEach((cluster, clusterIdx) => {
-        // Update particles within this cluster
-        cluster.particles.forEach((particle, pIdx) => {
-          particle.x += particle.vx
-          particle.y += particle.vy
+      // Draw digital network background
+      nodes.forEach((node, idx) => {
+        // Update node position
+        node.x += node.vx
+        node.y += node.vy
 
-          // Damping
-          particle.vx *= 0.96
-          particle.vy *= 0.96
+        // Wrap around edges
+        if (node.x < 0) node.x = canvas.offsetWidth
+        if (node.x > canvas.offsetWidth) node.x = 0
+        if (node.y < 0) node.y = canvas.offsetHeight
+        if (node.y > canvas.offsetHeight) node.y = 0
 
-          // Attract to cluster center with STRONG force
-          const toCenterX = cluster.x - particle.x
-          const toCenterY = cluster.y - particle.y
-          const toCenterDist = Math.sqrt(toCenterX * toCenterX + toCenterY * toCenterY)
+        // Opacity pulse
+        node.opacity = 0.2 + Math.sin(time * 0.5 + idx) * 0.15
 
-          if (toCenterDist > 0) {
-            const force = toCenterDist > 70 ? 0.2 : 0.08
-            particle.vx += (toCenterX / toCenterDist) * force
-            particle.vy += (toCenterY / toCenterDist) * force
-          }
-
-          // Keep particle from escaping cluster (hard boundary)
-          if (toCenterDist > 100) {
-            particle.x = cluster.x + (toCenterX / toCenterDist) * 95
-            particle.y = cluster.y + (toCenterY / toCenterDist) * 95
-          }
-
-          // Opacity oscillation
-          particle.opacity = 0.4 + Math.sin(time * 0.8 + pIdx) * 0.3
-
-          // Draw particle
-          const hue = particle.hue + Math.sin(time * 0.5 + pIdx * 0.1) * 15
-          ctx.fillStyle = `hsla(${hue}, 100%, 55%, ${particle.opacity})`
-          ctx.shadowBlur = 8
-          ctx.shadowColor = `hsla(${hue}, 100%, 60%, 0.6)`
-          ctx.beginPath()
-          ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
-          ctx.fill()
-        })
-
-        // Draw cluster core with pulsing effect
-        cluster.coreSize = Math.sin(time * 1.2 + clusterIdx) * 6 + 18
-        const coreHue = 20 + clusterIdx * 8
-        ctx.fillStyle = `hsla(${coreHue}, 100%, 50%, 0.9)`
-        ctx.shadowBlur = 30
-        ctx.shadowColor = `hsla(${coreHue}, 100%, 55%, 1)`
+        // Draw node
+        ctx.fillStyle = `rgba(255, 107, 53, ${node.opacity})`
+        ctx.shadowBlur = 6
+        ctx.shadowColor = 'rgba(255, 107, 53, 0.4)'
         ctx.beginPath()
-        ctx.arc(cluster.x, cluster.y, cluster.coreSize, 0, Math.PI * 2)
+        ctx.arc(node.x, node.y, 2, 0, Math.PI * 2)
         ctx.fill()
-
-        // Draw outer glow ring
-        ctx.strokeStyle = `hsla(${coreHue}, 100%, 60%, 0.5)`
-        ctx.lineWidth = 2.5
-        ctx.beginPath()
-        ctx.arc(cluster.x, cluster.y, cluster.coreSize + 12, 0, Math.PI * 2)
-        ctx.stroke()
-
-        // Draw cluster label
-        ctx.shadowBlur = 0
-        ctx.fillStyle = 'rgba(255, 255, 255, 1)'
-        ctx.font = 'bold 12px Arial'
-        ctx.textAlign = 'center'
-        ctx.fillText(cluster.label, cluster.x, cluster.y + cluster.coreSize + 45)
-
-        ctx.fillStyle = `hsla(${coreHue}, 100%, 65%, 1)`
-        ctx.font = 'bold 15px Arial'
-        ctx.fillText(`${cluster.value}%`, cluster.x, cluster.y + cluster.coreSize + 63)
       })
 
-      // Draw connecting lines between nearby clusters
-      ctx.shadowBlur = 8
-      for (let i = 0; i < clusters.length; i++) {
-        for (let j = i + 1; j < clusters.length; j++) {
-          const c1 = clusters[i]
-          const c2 = clusters[j]
-          const dx = c2.x - c1.x
-          const dy = c2.y - c1.y
-          const distance = Math.sqrt(dx * dx + dy * dy)
+      // Draw connections between nearby nodes
+      ctx.strokeStyle = 'rgba(255, 107, 53, 0.08)'
+      ctx.lineWidth = 0.5
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const dx = nodes[j].x - nodes[i].x
+          const dy = nodes[j].y - nodes[i].y
+          const dist = Math.sqrt(dx * dx + dy * dy)
 
-          if (distance < 450) {
-            const opacity = (1 - distance / 450) * 0.15
-            ctx.strokeStyle = `rgba(255, 107, 53, ${opacity})`
-            ctx.lineWidth = 1.2
+          if (dist < 200) {
             ctx.beginPath()
-            ctx.moveTo(c1.x, c1.y)
-            ctx.lineTo(c2.x, c2.y)
+            ctx.moveTo(nodes[i].x, nodes[i].y)
+            ctx.lineTo(nodes[j].x, nodes[j].y)
             ctx.stroke()
           }
         }
       }
 
+      // Draw atom nucleus (center glow)
+      const nucleusSize = Math.sin(time * 1.5) * 4 + 20
+      ctx.fillStyle = 'rgba(255, 107, 53, 0.6)'
+      ctx.shadowBlur = 40
+      ctx.shadowColor = 'rgba(255, 107, 53, 1)'
+      ctx.beginPath()
+      ctx.arc(centerX, centerY, nucleusSize, 0, Math.PI * 2)
+      ctx.fill()
+
+      // Draw orbital rings
+      ctx.strokeStyle = 'rgba(255, 107, 53, 0.2)'
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      ctx.arc(centerX, centerY, 120, 0, Math.PI * 2)
+      ctx.stroke()
+
+      // Draw electrons (orbiting buttons)
+      electron1.angle += electron1.speed
+      electron2.angle += electron2.speed
+
+      const e1X = centerX + Math.cos(electron1.angle) * electron1.radius
+      const e1Y = centerY + Math.sin(electron1.angle) * electron1.radius
+      const e2X = centerX + Math.cos(electron2.angle) * electron2.radius
+      const e2Y = centerY + Math.sin(electron2.angle) * electron2.radius
+
+      // Draw electron 1 glow
+      ctx.fillStyle = 'rgba(255, 107, 53, 0.4)'
+      ctx.shadowBlur = 20
+      ctx.shadowColor = 'rgba(255, 107, 53, 0.8)'
+      ctx.beginPath()
+      ctx.arc(e1X, e1Y, 12, 0, Math.PI * 2)
+      ctx.fill()
+
+      // Draw electron 2 glow
+      ctx.fillStyle = 'rgba(255, 107, 53, 0.4)'
+      ctx.beginPath()
+      ctx.arc(e2X, e2Y, 12, 0, Math.PI * 2)
+      ctx.fill()
+
+      // Store positions for button overlay
+      ;(window as any).electronPos = { e1: { x: e1X, y: e1Y }, e2: { x: e2X, y: e2Y }, center: { x: centerX, y: centerY } }
+
       // FPS counter
       frameCount++
       const now = Date.now()
       if (now - lastTime >= 1000) {
-        setStats({ fps: frameCount, particles: clusters.reduce((sum, c) => sum + c.particles.length, 0) })
+        setStats({ fps: frameCount })
         frameCount = 0
         lastTime = now
       }
@@ -194,11 +171,13 @@ export default function AdvancedParticleNetwork() {
 
   return (
     <motion.div
+      ref={containerRef}
       className="w-full h-full relative"
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.8 }}
     >
+      {/* Canvas background */}
       <canvas
         ref={canvasRef}
         className="w-full h-full rounded-2xl bg-gradient-to-br from-dark-surface to-dark-bg cursor-default"
@@ -206,15 +185,82 @@ export default function AdvancedParticleNetwork() {
       />
       <div className="absolute inset-0 pointer-events-none rounded-2xl border border-orange-primary/20" />
 
+      {/* Nucleus - Logo in center */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <motion.div
+          className="w-20 h-20 relative"
+          animate={{ scale: [1, 1.1, 1] }}
+          transition={{ duration: 2, repeat: Infinity }}
+        >
+          <img src="/logo1.png" alt="GSK Core" className="w-full h-full object-contain" />
+          <div className="absolute inset-0 rounded-full border-2 border-orange-primary/30 animate-spin" style={{ animationDuration: '4s' }} />
+        </motion.div>
+      </div>
+
+      {/* Electron 1 - Portfolio Button */}
+      <motion.div
+        className="absolute w-20 h-20 pointer-events-auto"
+        style={{
+          left: '50%',
+          top: '50%',
+          translateX: '-50%',
+          translateY: '-50%',
+        }}
+        animate={{
+          x: [0, 120, 0],
+          y: [0, 0, 120],
+        }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          ease: 'linear',
+        }}
+      >
+        <Link
+          href="/portfolio"
+          className="w-full h-full glass rounded-full flex items-center justify-center text-2xl hover:scale-110 transition-transform duration-300 border-2 border-orange-primary/40 hover:border-orange-primary/80 hover:bg-orange-primary/20"
+          title="View Portfolio"
+        >
+          📁
+        </Link>
+      </motion.div>
+
+      {/* Electron 2 - Contact Button */}
+      <motion.div
+        className="absolute w-20 h-20 pointer-events-auto"
+        style={{
+          left: '50%',
+          top: '50%',
+          translateX: '-50%',
+          translateY: '-50%',
+        }}
+        animate={{
+          x: [-120, 0, -120],
+          y: [0, -120, 0],
+        }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          ease: 'linear',
+        }}
+      >
+        <Link
+          href="/contact"
+          className="w-full h-full glass rounded-full flex items-center justify-center text-2xl hover:scale-110 transition-transform duration-300 border-2 border-orange-primary/40 hover:border-orange-primary/80 hover:bg-orange-primary/20"
+          title="Get in Touch"
+        >
+          📱
+        </Link>
+      </motion.div>
+
       {/* Stats overlay */}
       <motion.div
-        className="absolute top-4 right-4 glass rounded-lg px-4 py-2 text-sm text-orange-primary"
+        className="absolute top-4 right-4 glass rounded-lg px-4 py-2 text-sm text-orange-primary border border-orange-primary/30"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
       >
         <div>FPS: {stats.fps}</div>
-        <div>Particles: {stats.particles}</div>
       </motion.div>
     </motion.div>
   )
