@@ -156,33 +156,6 @@ export default function HeroContent() {
         </motion.button>
       </motion.div>
 
-      {/* Floating stats */}
-      <motion.div
-        variants={itemVariants}
-        className="flex flex-wrap gap-8 justify-center"
-        data-parallax="5"
-      >
-        {[
-          { label: 'Projects Delivered', value: '200+' },
-          { label: 'Happy Clients', value: '150+' },
-          { label: 'Team Members', value: '50+' },
-        ].map((stat, i) => (
-          <motion.div
-            key={i}
-            className="glass rounded-xl p-6 min-w-[180px]"
-            whileHover={{
-              y: -10,
-              boxShadow: '0 0 40px rgba(255, 107, 53, 0.3)',
-            }}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="text-3xl font-bold bg-gradient-to-r from-orange-primary to-orange-bright bg-clip-text text-transparent mb-2">
-              {stat.value}
-            </div>
-            <div className="text-sm text-gray-light/60">{stat.label}</div>
-          </motion.div>
-        ))}
-      </motion.div>
 
       {/* Scroll indicator */}
       <motion.div

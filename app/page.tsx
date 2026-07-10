@@ -7,9 +7,9 @@ import HeroContent from '@/components/HeroContent'
 import Navigation from '@/components/Navigation'
 import WhyChooseUs from '@/components/WhyChooseUs'
 import Footer from '@/components/Footer'
-import Interactive3D from '@/components/Interactive3D'
+import AdvancedParticleNetwork from '@/components/AdvancedParticleNetwork'
 
-// Dynamic import of Three.js component to avoid SSR issues
+// Dynamic import of hero background to avoid SSR issues
 const HeroBackground = dynamic(() => import('@/components/HeroBackground'), {
   ssr: false,
   loading: () => (
@@ -19,7 +19,7 @@ const HeroBackground = dynamic(() => import('@/components/HeroBackground'), {
 
 export default function Home() {
   return (
-    <main className="w-full overflow-hidden bg-dark-bg">
+    <main className="w-full overflow-hidden bg-dark-bg pt-20">
       <Navigation />
 
       {/* Hero Section */}
@@ -33,7 +33,7 @@ export default function Home() {
         <HeroContent />
       </section>
 
-      {/* Interactive 3D Section */}
+      {/* Advanced Particle Network Section */}
       <section className="relative w-full py-24 bg-dark-bg border-t border-orange-primary/10">
         <div className="max-w-7xl mx-auto px-4">
           <motion.div
@@ -43,23 +43,31 @@ export default function Home() {
             viewport={{ once: true }}
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Experience Our <span className="bg-gradient-to-r from-orange-primary to-orange-bright bg-clip-text text-transparent">Interactive Technology</span>
+              Advanced <span className="bg-gradient-to-r from-orange-primary to-orange-bright bg-clip-text text-transparent">Real-Time Visualization</span>
             </h2>
             <p className="text-gray-light/70 max-w-2xl mx-auto text-lg">
-              Move your mouse over the cube to see our cutting-edge 3D technology in action
+              Watch as dynamic particle clusters visualize our expertise across key domains. Move your mouse to interact with the network.
             </p>
           </motion.div>
 
-          <Interactive3D />
+          <motion.div
+            className="h-96 rounded-2xl overflow-hidden"
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <AdvancedParticleNetwork />
+          </motion.div>
 
           <motion.p
-            className="text-center mt-8 text-gray-light/60"
+            className="text-center mt-12 text-gray-light/60 max-w-2xl mx-auto"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3 }}
           >
-            This is a glimpse of the immersive experiences we build for our clients
+            This real-time particle network demonstrates our capability to build sophisticated, performance-optimized interactive experiences. Built with advanced Canvas rendering, physics simulation, and data visualization techniques.
           </motion.p>
         </div>
       </section>

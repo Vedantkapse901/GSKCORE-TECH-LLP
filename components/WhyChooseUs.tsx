@@ -83,27 +83,6 @@ export default function WhyChooseUs() {
           ))}
         </div>
 
-        {/* Bottom stats */}
-        <motion.div
-          className="mt-20 grid grid-cols-1 md:grid-cols-4 gap-8"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
-          {[
-            { value: '200+', label: 'Projects' },
-            { value: '150+', label: 'Happy Clients' },
-            { value: '10+', label: 'Years Experience' },
-            { value: '50+', label: 'Team Members' },
-          ].map((stat, i) => (
-            <div key={i} className="glass rounded-xl p-6 text-center">
-              <div className="text-3xl font-bold bg-gradient-to-r from-orange-primary to-orange-bright bg-clip-text text-transparent mb-2">
-                {stat.value}
-              </div>
-              <div className="text-gray-light/60 text-sm">{stat.label}</div>
-            </div>
-          ))}
-        </motion.div>
       </div>
     </section>
   )
