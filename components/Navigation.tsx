@@ -11,7 +11,6 @@ const navItems = [
   { label: 'Portfolio', href: '/portfolio' },
   { label: 'About', href: '/about' },
   { label: 'Contact', href: '/contact' },
-  { label: 'Admin', href: '/admin' },
 ]
 
 export default function Navigation() {
@@ -33,7 +32,7 @@ export default function Navigation() {
         {/* Logo */}
         <motion.a
           href="/"
-          className="w-14 h-14 relative flex-shrink-0"
+          className="w-28 h-28 relative flex-shrink-0"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
@@ -61,15 +60,6 @@ export default function Navigation() {
           ))}
         </div>
 
-        {/* Admin Button */}
-        <motion.a
-          href="/admin"
-          className="hidden lg:block px-6 py-2 bg-gradient-to-r from-orange-primary to-red-orange text-white rounded-lg font-semibold"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          Admin
-        </motion.a>
 
         {/* Mobile Hamburger Menu Button */}
         <motion.button
