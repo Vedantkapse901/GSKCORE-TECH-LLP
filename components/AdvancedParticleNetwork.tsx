@@ -246,7 +246,7 @@ export default function AdvancedParticleNetwork() {
           y: orbitFrames.portfolio.y,
         }}
         transition={{
-          duration: 8,
+          duration: 16,
           repeat: Infinity,
           ease: 'linear',
         }}
@@ -275,7 +275,7 @@ export default function AdvancedParticleNetwork() {
           y: orbitFrames.contact.y,
         }}
         transition={{
-          duration: 8,
+          duration: 16,
           repeat: Infinity,
           ease: 'linear',
         }}
