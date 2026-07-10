@@ -14,7 +14,8 @@ interface NetworkNode {
 
 interface ResponsiveValues {
   buttonSize: string
-  orbitRadius: number
+  innerOrbitRadius: number
+  outerOrbitRadius: number
   logoSize: string
   fontSize: string
   ringRadius: number
@@ -24,8 +25,9 @@ export default function AdvancedParticleNetwork() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [responsiveValues, setResponsiveValues] = useState<ResponsiveValues>({
-    buttonSize: 'w-16 h-16',
-    orbitRadius: 70,
+    buttonSize: 'w-12 h-12',
+    innerOrbitRadius: 80,
+    outerOrbitRadius: 120,
     logoSize: 'w-16 h-16',
     fontSize: 'text-lg',
     ringRadius: 90,
@@ -39,37 +41,41 @@ export default function AdvancedParticleNetwork() {
     const height = container.offsetHeight
 
     let buttonSize: string
-    let orbitRadius: number
+    let innerOrbitRadius: number
+    let outerOrbitRadius: number
     let logoSize: string
     let fontSize: string
     let ringRadius: number
 
     // Mobile (< 640px)
     if (width < 640) {
-      buttonSize = 'w-12 h-12'
-      orbitRadius = 50
+      buttonSize = 'w-10 h-10'
+      innerOrbitRadius = 60
+      outerOrbitRadius = 100
       logoSize = 'w-12 h-12'
       fontSize = 'text-base'
-      ringRadius = 70
+      ringRadius = 80
     }
     // Tablet (640px - 1024px)
     else if (width < 1024) {
-      buttonSize = 'w-16 h-16'
-      orbitRadius = 70
+      buttonSize = 'w-12 h-12'
+      innerOrbitRadius = 90
+      outerOrbitRadius = 150
       logoSize = 'w-16 h-16'
       fontSize = 'text-lg'
-      ringRadius = 90
+      ringRadius = 120
     }
     // Desktop (> 1024px)
     else {
-      buttonSize = 'w-20 h-20'
-      orbitRadius = 100
+      buttonSize = 'w-14 h-14'
+      innerOrbitRadius = 120
+      outerOrbitRadius = 200
       logoSize = 'w-20 h-20'
       fontSize = 'text-2xl'
-      ringRadius = 120
+      ringRadius = 160
     }
 
-    setResponsiveValues({ buttonSize, orbitRadius, logoSize, fontSize, ringRadius })
+    setResponsiveValues({ buttonSize, innerOrbitRadius, outerOrbitRadius, logoSize, fontSize, ringRadius })
   }
 
   useEffect(() => {
@@ -160,10 +166,15 @@ export default function AdvancedParticleNetwork() {
       ctx.arc(centerX, centerY, nucleusSize, 0, Math.PI * 2)
       ctx.fill()
 
-      ctx.strokeStyle = 'rgba(255, 107, 53, 0.2)'
+      ctx.strokeStyle = 'rgba(255, 107, 53, 0.15)'
       ctx.lineWidth = 1
       ctx.beginPath()
-      ctx.arc(centerX, centerY, responsiveValues.ringRadius, 0, Math.PI * 2)
+      ctx.arc(centerX, centerY, responsiveValues.innerOrbitRadius, 0, Math.PI * 2)
+      ctx.stroke()
+
+      ctx.strokeStyle = 'rgba(255, 107, 53, 0.1)'
+      ctx.beginPath()
+      ctx.arc(centerX, centerY, responsiveValues.outerOrbitRadius, 0, Math.PI * 2)
       ctx.stroke()
 
       ctx.shadowBlur = 0
@@ -178,8 +189,8 @@ export default function AdvancedParticleNetwork() {
   }, [responsiveValues.ringRadius])
 
   const getOrbitKeyframes = () => {
-    const innerR = responsiveValues.orbitRadius * 0.6
-    const outerR = responsiveValues.orbitRadius
+    const innerR = responsiveValues.innerOrbitRadius
+    const outerR = responsiveValues.outerOrbitRadius
     return {
       portfolio: {
         x: [0, innerR * 0.707, innerR, innerR * 0.707, 0, -innerR * 0.707, -innerR, -innerR * 0.707, 0],
