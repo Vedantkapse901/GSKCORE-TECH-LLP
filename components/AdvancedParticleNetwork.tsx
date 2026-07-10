@@ -9,9 +9,8 @@ interface Particle {
   vx: number
   vy: number
   size: number
-  life: number
-  maxLife: number
-  color: string
+  opacity: number
+  hue: number
 }
 
 interface Cluster {
@@ -20,6 +19,7 @@ interface Cluster {
   particles: Particle[]
   label: string
   value: number
+  coreSize: number
 }
 
 export default function AdvancedParticleNetwork() {
@@ -42,41 +42,30 @@ export default function AdvancedParticleNetwork() {
     resizeCanvas()
     window.addEventListener('resize', resizeCanvas)
 
-    let mouseX = canvas.offsetWidth / 2
-    let mouseY = canvas.offsetHeight / 2
     let time = 0
 
-    const handleMouseMove = (e: MouseEvent) => {
-      const rect = canvas.getBoundingClientRect()
-      mouseX = e.clientX - rect.left
-      mouseY = e.clientY - rect.top
-    }
-
-    window.addEventListener('mousemove', handleMouseMove)
-
-    // Create data clusters
+    // Create data clusters with FIXED positions (no mouse interaction)
     const clusters: Cluster[] = [
-      { x: canvas.offsetWidth * 0.2, y: canvas.offsetHeight * 0.3, particles: [], label: 'Web Dev', value: 95 },
-      { x: canvas.offsetWidth * 0.8, y: canvas.offsetHeight * 0.3, particles: [], label: 'Mobile', value: 87 },
-      { x: canvas.offsetWidth * 0.5, y: canvas.offsetHeight * 0.7, particles: [], label: 'AI/ML', value: 92 },
-      { x: canvas.offsetWidth * 0.3, y: canvas.offsetHeight * 0.8, particles: [], label: 'Cloud', value: 89 },
-      { x: canvas.offsetWidth * 0.7, y: canvas.offsetHeight * 0.8, particles: [], label: 'DevOps', value: 91 },
+      { x: canvas.offsetWidth * 0.15, y: canvas.offsetHeight * 0.3, particles: [], label: 'Web Dev', value: 95, coreSize: 0 },
+      { x: canvas.offsetWidth * 0.85, y: canvas.offsetHeight * 0.3, particles: [], label: 'Mobile', value: 87, coreSize: 0 },
+      { x: canvas.offsetWidth * 0.5, y: canvas.offsetHeight * 0.75, particles: [], label: 'AI/ML', value: 92, coreSize: 0 },
+      { x: canvas.offsetWidth * 0.25, y: canvas.offsetHeight * 0.6, particles: [], label: 'Cloud', value: 89, coreSize: 0 },
+      { x: canvas.offsetWidth * 0.75, y: canvas.offsetHeight * 0.6, particles: [], label: 'DevOps', value: 91, coreSize: 0 },
     ]
 
     // Initialize particles for each cluster
-    clusters.forEach((cluster) => {
+    clusters.forEach((cluster, clusterIdx) => {
       for (let i = 0; i < 30; i++) {
         const angle = Math.random() * Math.PI * 2
-        const distance = Math.random() * 80 + 20
+        const distance = Math.random() * 50 + 5
         cluster.particles.push({
           x: cluster.x + Math.cos(angle) * distance,
           y: cluster.y + Math.sin(angle) * distance,
-          vx: (Math.random() - 0.5) * 2,
-          vy: (Math.random() - 0.5) * 2,
-          size: Math.random() * 2 + 1,
-          life: 1,
-          maxLife: Math.random() * 2 + 1,
-          color: `hsl(${20 + Math.random() * 40}, 100%, 50%)`,
+          vx: (Math.random() - 0.5) * 0.8,
+          vy: (Math.random() - 0.5) * 0.8,
+          size: Math.random() * 1.5 + 0.5,
+          opacity: Math.random() * 0.6 + 0.4,
+          hue: 20 + clusterIdx * 8,
         })
       }
     })
@@ -86,90 +75,83 @@ export default function AdvancedParticleNetwork() {
 
     const animate = () => {
       // Clear canvas
-      ctx.fillStyle = 'rgba(10, 10, 10, 0.1)'
+      ctx.fillStyle = 'rgba(10, 10, 10, 0.2)'
       ctx.fillRect(0, 0, canvas.offsetWidth, canvas.offsetHeight)
 
-      time += 0.01
+      time += 0.016
 
-      // Update and draw clusters
-      clusters.forEach((cluster) => {
-        // Attract cluster towards mouse
-        const dx = mouseX - cluster.x
-        const dy = mouseY - cluster.y
-        const distance = Math.sqrt(dx * dx + dy * dy)
-        const attraction = Math.max(0, 1 - distance / 300)
-
-        cluster.x += dx * attraction * 0.02
-        cluster.y += dy * attraction * 0.02
-
-        // Keep clusters in bounds
-        cluster.x = Math.max(50, Math.min(canvas.offsetWidth - 50, cluster.x))
-        cluster.y = Math.max(50, Math.min(canvas.offsetHeight - 50, cluster.y))
-
-        // Update particles
-        cluster.particles.forEach((particle, index) => {
-          particle.life -= 0.01
+      // Update and draw each cluster independently
+      clusters.forEach((cluster, clusterIdx) => {
+        // Update particles within this cluster
+        cluster.particles.forEach((particle, pIdx) => {
           particle.x += particle.vx
           particle.y += particle.vy
-          particle.vy += 0.05 // Gravity
 
-          // Attract to cluster center
+          // Damping
+          particle.vx *= 0.96
+          particle.vy *= 0.96
+
+          // Attract to cluster center with STRONG force
           const toCenterX = cluster.x - particle.x
           const toCenterY = cluster.y - particle.y
           const toCenterDist = Math.sqrt(toCenterX * toCenterX + toCenterY * toCenterY)
 
-          if (toCenterDist > 150) {
-            particle.vx += (toCenterX / toCenterDist) * 0.1
-            particle.vy += (toCenterY / toCenterDist) * 0.1
+          if (toCenterDist > 0) {
+            const force = toCenterDist > 70 ? 0.2 : 0.08
+            particle.vx += (toCenterX / toCenterDist) * force
+            particle.vy += (toCenterY / toCenterDist) * force
           }
 
-          // Respawn dead particles
-          if (particle.life <= 0) {
-            const angle = Math.random() * Math.PI * 2
-            const distance = Math.random() * 80 + 20
-            cluster.particles[index] = {
-              x: cluster.x + Math.cos(angle) * distance,
-              y: cluster.y + Math.sin(angle) * distance,
-              vx: (Math.random() - 0.5) * 2,
-              vy: (Math.random() - 0.5) * 2,
-              size: Math.random() * 2 + 1,
-              life: 1,
-              maxLife: Math.random() * 2 + 1,
-              color: particle.color,
-            }
+          // Keep particle from escaping cluster (hard boundary)
+          if (toCenterDist > 100) {
+            particle.x = cluster.x + (toCenterX / toCenterDist) * 95
+            particle.y = cluster.y + (toCenterY / toCenterDist) * 95
           }
+
+          // Opacity oscillation
+          particle.opacity = 0.4 + Math.sin(time * 0.8 + pIdx) * 0.3
 
           // Draw particle
-          const opacity = Math.max(0, particle.life)
-          const hue = 20 + (Math.sin(time + index) * 20)
-          ctx.fillStyle = `hsla(${hue}, 100%, 60%, ${opacity * 0.8})`
-          ctx.shadowBlur = 10
-          ctx.shadowColor = `hsla(${hue}, 100%, 60%, ${opacity})`
+          const hue = particle.hue + Math.sin(time * 0.5 + pIdx * 0.1) * 15
+          ctx.fillStyle = `hsla(${hue}, 100%, 55%, ${particle.opacity})`
+          ctx.shadowBlur = 8
+          ctx.shadowColor = `hsla(${hue}, 100%, 60%, 0.6)`
           ctx.beginPath()
           ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
           ctx.fill()
         })
 
-        // Draw cluster core
-        const coreSize = Math.sin(time) * 5 + 15
-        ctx.fillStyle = `hsla(20, 100%, 60%, 0.6)`
-        ctx.shadowBlur = 20
-        ctx.shadowColor = `hsla(20, 100%, 60%, 1)`
+        // Draw cluster core with pulsing effect
+        cluster.coreSize = Math.sin(time * 1.2 + clusterIdx) * 6 + 18
+        const coreHue = 20 + clusterIdx * 8
+        ctx.fillStyle = `hsla(${coreHue}, 100%, 50%, 0.9)`
+        ctx.shadowBlur = 30
+        ctx.shadowColor = `hsla(${coreHue}, 100%, 55%, 1)`
         ctx.beginPath()
-        ctx.arc(cluster.x, cluster.y, coreSize, 0, Math.PI * 2)
+        ctx.arc(cluster.x, cluster.y, cluster.coreSize, 0, Math.PI * 2)
         ctx.fill()
 
-        // Draw cluster label with value
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'
-        ctx.font = 'bold 14px Arial'
+        // Draw outer glow ring
+        ctx.strokeStyle = `hsla(${coreHue}, 100%, 60%, 0.5)`
+        ctx.lineWidth = 2.5
+        ctx.beginPath()
+        ctx.arc(cluster.x, cluster.y, cluster.coreSize + 12, 0, Math.PI * 2)
+        ctx.stroke()
+
+        // Draw cluster label
+        ctx.shadowBlur = 0
+        ctx.fillStyle = 'rgba(255, 255, 255, 1)'
+        ctx.font = 'bold 12px Arial'
         ctx.textAlign = 'center'
-        ctx.fillText(cluster.label, cluster.x, cluster.y + 50)
-        ctx.fillStyle = 'rgba(255, 107, 53, 0.9)'
-        ctx.font = 'bold 16px Arial'
-        ctx.fillText(`${cluster.value}%`, cluster.x, cluster.y + 68)
+        ctx.fillText(cluster.label, cluster.x, cluster.y + cluster.coreSize + 45)
+
+        ctx.fillStyle = `hsla(${coreHue}, 100%, 65%, 1)`
+        ctx.font = 'bold 15px Arial'
+        ctx.fillText(`${cluster.value}%`, cluster.x, cluster.y + cluster.coreSize + 63)
       })
 
-      // Draw connecting lines between clusters
+      // Draw connecting lines between nearby clusters
+      ctx.shadowBlur = 8
       for (let i = 0; i < clusters.length; i++) {
         for (let j = i + 1; j < clusters.length; j++) {
           const c1 = clusters[i]
@@ -178,10 +160,10 @@ export default function AdvancedParticleNetwork() {
           const dy = c2.y - c1.y
           const distance = Math.sqrt(dx * dx + dy * dy)
 
-          if (distance < 400) {
-            const opacity = Math.max(0, 1 - distance / 400)
-            ctx.strokeStyle = `rgba(255, 107, 53, ${opacity * 0.3})`
-            ctx.lineWidth = 1 + opacity
+          if (distance < 450) {
+            const opacity = (1 - distance / 450) * 0.15
+            ctx.strokeStyle = `rgba(255, 107, 53, ${opacity})`
+            ctx.lineWidth = 1.2
             ctx.beginPath()
             ctx.moveTo(c1.x, c1.y)
             ctx.lineTo(c2.x, c2.y)
@@ -206,7 +188,6 @@ export default function AdvancedParticleNetwork() {
     animate()
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove)
       window.removeEventListener('resize', resizeCanvas)
     }
   }, [])
@@ -220,7 +201,7 @@ export default function AdvancedParticleNetwork() {
     >
       <canvas
         ref={canvasRef}
-        className="w-full h-full rounded-2xl bg-gradient-to-br from-dark-surface to-dark-bg cursor-crosshair"
+        className="w-full h-full rounded-2xl bg-gradient-to-br from-dark-surface to-dark-bg cursor-default"
         style={{ display: 'block' }}
       />
       <div className="absolute inset-0 pointer-events-none rounded-2xl border border-orange-primary/20" />
