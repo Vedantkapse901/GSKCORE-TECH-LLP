@@ -12,10 +12,71 @@ interface NetworkNode {
   opacity: number
 }
 
+interface ResponsiveValues {
+  buttonSize: string
+  orbitRadius: number
+  logoSize: string
+  fontSize: string
+  ringRadius: number
+}
+
 export default function AdvancedParticleNetwork() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const [stats, setStats] = useState({ fps: 0 })
+  const [responsiveValues, setResponsiveValues] = useState<ResponsiveValues>({
+    buttonSize: 'w-16 h-16',
+    orbitRadius: 70,
+    logoSize: 'w-16 h-16',
+    fontSize: 'text-lg',
+    ringRadius: 90,
+  })
+
+  const calculateResponsiveValues = () => {
+    const container = containerRef.current
+    if (!container) return
+
+    const width = container.offsetWidth
+    const height = container.offsetHeight
+
+    let buttonSize: string
+    let orbitRadius: number
+    let logoSize: string
+    let fontSize: string
+    let ringRadius: number
+
+    // Mobile (< 640px)
+    if (width < 640) {
+      buttonSize = 'w-12 h-12'
+      orbitRadius = 50
+      logoSize = 'w-12 h-12'
+      fontSize = 'text-base'
+      ringRadius = 70
+    }
+    // Tablet (640px - 1024px)
+    else if (width < 1024) {
+      buttonSize = 'w-16 h-16'
+      orbitRadius = 70
+      logoSize = 'w-16 h-16'
+      fontSize = 'text-lg'
+      ringRadius = 90
+    }
+    // Desktop (> 1024px)
+    else {
+      buttonSize = 'w-20 h-20'
+      orbitRadius = 100
+      logoSize = 'w-20 h-20'
+      fontSize = 'text-2xl'
+      ringRadius = 120
+    }
+
+    setResponsiveValues({ buttonSize, orbitRadius, logoSize, fontSize, ringRadius })
+  }
+
+  useEffect(() => {
+    calculateResponsiveValues()
+    window.addEventListener('resize', calculateResponsiveValues)
+    return () => window.removeEventListener('resize', calculateResponsiveValues)
+  }, [])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -25,7 +86,6 @@ export default function AdvancedParticleNetwork() {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    // Set canvas size
     const resizeCanvas = () => {
       canvas.width = canvas.offsetWidth * window.devicePixelRatio
       canvas.height = canvas.offsetHeight * window.devicePixelRatio
@@ -36,7 +96,6 @@ export default function AdvancedParticleNetwork() {
 
     let time = 0
 
-    // Create digital network nodes
     const nodes: NetworkNode[] = []
     for (let i = 0; i < 40; i++) {
       nodes.push({
@@ -51,36 +110,23 @@ export default function AdvancedParticleNetwork() {
     const centerX = canvas.offsetWidth / 2
     const centerY = canvas.offsetHeight / 2
 
-    // Atom electron positions (orbiting around nucleus)
-    const electron1 = { angle: 0, radius: 120, speed: 0.01 }
-    const electron2 = { angle: Math.PI, radius: 120, speed: 0.01 }
-
-    let frameCount = 0
-    let lastTime = Date.now()
-
     const animate = () => {
-      // Clear with fade
       ctx.fillStyle = 'rgba(10, 10, 10, 0.1)'
       ctx.fillRect(0, 0, canvas.offsetWidth, canvas.offsetHeight)
 
       time += 0.016
 
-      // Draw digital network background
       nodes.forEach((node, idx) => {
-        // Update node position
         node.x += node.vx
         node.y += node.vy
 
-        // Wrap around edges
         if (node.x < 0) node.x = canvas.offsetWidth
         if (node.x > canvas.offsetWidth) node.x = 0
         if (node.y < 0) node.y = canvas.offsetHeight
         if (node.y > canvas.offsetHeight) node.y = 0
 
-        // Opacity pulse
         node.opacity = 0.2 + Math.sin(time * 0.5 + idx) * 0.15
 
-        // Draw node
         ctx.fillStyle = `rgba(255, 107, 53, ${node.opacity})`
         ctx.shadowBlur = 6
         ctx.shadowColor = 'rgba(255, 107, 53, 0.4)'
@@ -89,7 +135,6 @@ export default function AdvancedParticleNetwork() {
         ctx.fill()
       })
 
-      // Draw connections between nearby nodes
       ctx.strokeStyle = 'rgba(255, 107, 53, 0.08)'
       ctx.lineWidth = 0.5
       for (let i = 0; i < nodes.length; i++) {
@@ -107,8 +152,7 @@ export default function AdvancedParticleNetwork() {
         }
       }
 
-      // Draw atom nucleus (center glow)
-      const nucleusSize = Math.sin(time * 1.5) * 4 + 20
+      const nucleusSize = Math.sin(time * 1.5) * 4 + 15
       ctx.fillStyle = 'rgba(255, 107, 53, 0.6)'
       ctx.shadowBlur = 40
       ctx.shadowColor = 'rgba(255, 107, 53, 1)'
@@ -116,47 +160,11 @@ export default function AdvancedParticleNetwork() {
       ctx.arc(centerX, centerY, nucleusSize, 0, Math.PI * 2)
       ctx.fill()
 
-      // Draw orbital rings
       ctx.strokeStyle = 'rgba(255, 107, 53, 0.2)'
       ctx.lineWidth = 1
       ctx.beginPath()
-      ctx.arc(centerX, centerY, 120, 0, Math.PI * 2)
+      ctx.arc(centerX, centerY, responsiveValues.ringRadius, 0, Math.PI * 2)
       ctx.stroke()
-
-      // Draw electrons (orbiting buttons)
-      electron1.angle += electron1.speed
-      electron2.angle += electron2.speed
-
-      const e1X = centerX + Math.cos(electron1.angle) * electron1.radius
-      const e1Y = centerY + Math.sin(electron1.angle) * electron1.radius
-      const e2X = centerX + Math.cos(electron2.angle) * electron2.radius
-      const e2Y = centerY + Math.sin(electron2.angle) * electron2.radius
-
-      // Draw electron 1 glow
-      ctx.fillStyle = 'rgba(255, 107, 53, 0.4)'
-      ctx.shadowBlur = 20
-      ctx.shadowColor = 'rgba(255, 107, 53, 0.8)'
-      ctx.beginPath()
-      ctx.arc(e1X, e1Y, 12, 0, Math.PI * 2)
-      ctx.fill()
-
-      // Draw electron 2 glow
-      ctx.fillStyle = 'rgba(255, 107, 53, 0.4)'
-      ctx.beginPath()
-      ctx.arc(e2X, e2Y, 12, 0, Math.PI * 2)
-      ctx.fill()
-
-      // Store positions for button overlay
-      ;(window as any).electronPos = { e1: { x: e1X, y: e1Y }, e2: { x: e2X, y: e2Y }, center: { x: centerX, y: centerY } }
-
-      // FPS counter
-      frameCount++
-      const now = Date.now()
-      if (now - lastTime >= 1000) {
-        setStats({ fps: frameCount })
-        frameCount = 0
-        lastTime = now
-      }
 
       ctx.shadowBlur = 0
       requestAnimationFrame(animate)
@@ -167,7 +175,23 @@ export default function AdvancedParticleNetwork() {
     return () => {
       window.removeEventListener('resize', resizeCanvas)
     }
-  }, [])
+  }, [responsiveValues.ringRadius])
+
+  const getOrbitKeyframes = () => {
+    const r = responsiveValues.orbitRadius
+    return {
+      portfolio: {
+        x: [0, r * 0.7, r, r * 0.7, 0, -r * 0.7, -r, -r * 0.7, 0],
+        y: [-r, -r * 0.7, 0, r * 0.7, r, r * 0.7, 0, -r * 0.7, -r],
+      },
+      contact: {
+        x: [0, -r * 0.7, -r, -r * 0.7, 0, r * 0.7, r, r * 0.7, 0],
+        y: [r, r * 0.7, 0, -r * 0.7, -r, -r * 0.7, 0, r * 0.7, r],
+      },
+    }
+  }
+
+  const orbitFrames = getOrbitKeyframes()
 
   return (
     <motion.div
@@ -177,7 +201,6 @@ export default function AdvancedParticleNetwork() {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.8 }}
     >
-      {/* Canvas background */}
       <canvas
         ref={canvasRef}
         className="w-full h-full rounded-2xl bg-gradient-to-br from-dark-surface to-dark-bg cursor-default"
@@ -188,7 +211,7 @@ export default function AdvancedParticleNetwork() {
       {/* Nucleus - Logo in center */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <motion.div
-          className="w-20 h-20 relative"
+          className={`${responsiveValues.logoSize} relative`}
           animate={{ scale: [1, 1.1, 1] }}
           transition={{ duration: 2, repeat: Infinity }}
         >
@@ -197,9 +220,9 @@ export default function AdvancedParticleNetwork() {
         </motion.div>
       </div>
 
-      {/* Electron 1 - Portfolio Button */}
+      {/* Electron 1 - Portfolio Button (Orbiting) */}
       <motion.div
-        className="absolute w-20 h-20 pointer-events-auto"
+        className={`absolute ${responsiveValues.buttonSize} pointer-events-auto`}
         style={{
           left: '50%',
           top: '50%',
@@ -207,8 +230,8 @@ export default function AdvancedParticleNetwork() {
           translateY: '-50%',
         }}
         animate={{
-          x: [0, 120, 0],
-          y: [0, 0, 120],
+          x: orbitFrames.portfolio.x,
+          y: orbitFrames.portfolio.y,
         }}
         transition={{
           duration: 8,
@@ -218,16 +241,17 @@ export default function AdvancedParticleNetwork() {
       >
         <Link
           href="/portfolio"
-          className="w-full h-full glass rounded-full flex items-center justify-center text-2xl hover:scale-110 transition-transform duration-300 border-2 border-orange-primary/40 hover:border-orange-primary/80 hover:bg-orange-primary/20"
+          data-electron="1"
+          className={`w-full h-full glass rounded-full flex items-center justify-center ${responsiveValues.fontSize} hover:scale-110 transition-transform duration-300 border-2 border-orange-primary/40 hover:border-orange-primary/80 hover:bg-orange-primary/20 shadow-lg`}
           title="View Portfolio"
         >
           📁
         </Link>
       </motion.div>
 
-      {/* Electron 2 - Contact Button */}
+      {/* Electron 2 - Contact Button (Orbiting - opposite direction) */}
       <motion.div
-        className="absolute w-20 h-20 pointer-events-auto"
+        className={`absolute ${responsiveValues.buttonSize} pointer-events-auto`}
         style={{
           left: '50%',
           top: '50%',
@@ -235,8 +259,8 @@ export default function AdvancedParticleNetwork() {
           translateY: '-50%',
         }}
         animate={{
-          x: [-120, 0, -120],
-          y: [0, -120, 0],
+          x: orbitFrames.contact.x,
+          y: orbitFrames.contact.y,
         }}
         transition={{
           duration: 8,
@@ -246,21 +270,12 @@ export default function AdvancedParticleNetwork() {
       >
         <Link
           href="/contact"
-          className="w-full h-full glass rounded-full flex items-center justify-center text-2xl hover:scale-110 transition-transform duration-300 border-2 border-orange-primary/40 hover:border-orange-primary/80 hover:bg-orange-primary/20"
+          data-electron="2"
+          className={`w-full h-full glass rounded-full flex items-center justify-center ${responsiveValues.fontSize} hover:scale-110 transition-transform duration-300 border-2 border-orange-primary/40 hover:border-orange-primary/80 hover:bg-orange-primary/20 shadow-lg`}
           title="Get in Touch"
         >
           📱
         </Link>
-      </motion.div>
-
-      {/* Stats overlay */}
-      <motion.div
-        className="absolute top-4 right-4 glass rounded-lg px-4 py-2 text-sm text-orange-primary border border-orange-primary/30"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-      >
-        <div>FPS: {stats.fps}</div>
       </motion.div>
     </motion.div>
   )

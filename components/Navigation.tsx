@@ -45,25 +45,9 @@ export default function Navigation() {
           />
         </motion.a>
 
-        {/* Desktop menu */}
-        <div className="hidden lg:flex gap-8 flex-1 justify-center">
-          {navItems.slice(0, -1).map((item) => (
-            <motion.a
-              key={item.label}
-              href={item.href}
-              className="text-gray-light/70 hover:text-orange-primary transition-colors relative group font-medium"
-              whileHover={{ y: -2 }}
-            >
-              {item.label}
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-orange-primary to-orange-bright group-hover:w-full transition-all duration-300" />
-            </motion.a>
-          ))}
-        </div>
-
-
-        {/* Mobile Hamburger Menu Button */}
+        {/* Hamburger Menu Button */}
         <motion.button
-          className="lg:hidden flex flex-col gap-1.5 p-2"
+          className="flex flex-col gap-1.5 p-2"
           onClick={() => setIsOpen(!isOpen)}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
@@ -86,11 +70,11 @@ export default function Navigation() {
         </motion.button>
       </div>
 
-      {/* Mobile Full Screen Menu */}
+      {/* Full Screen Menu */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="lg:hidden absolute top-full left-0 right-0 bg-gradient-to-b from-dark-bg to-dark-surface border-b border-orange-primary/20 backdrop-blur-xl"
+            className="absolute top-full left-0 right-0 bg-gradient-to-b from-dark-bg to-dark-surface border-b border-orange-primary/20 backdrop-blur-xl"
             variants={menuVariants}
             initial="closed"
             animate="open"
