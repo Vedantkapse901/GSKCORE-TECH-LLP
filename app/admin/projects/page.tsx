@@ -128,7 +128,8 @@ export default function AdminProjects() {
       fetchProjects()
     } catch (error) {
       console.error('Error saving project:', error)
-      alert('Failed to save project. Please try again.')
+      const errorMsg = error instanceof Error ? error.message : 'Please try again'
+      alert(`Failed to save project: ${errorMsg}`)
     }
   }
 

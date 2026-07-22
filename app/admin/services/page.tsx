@@ -60,6 +60,7 @@ export default function AdminServices() {
       fetchServices()
     } catch (error) {
       console.error('Error adding service:', error)
+      alert(`Failed to add service: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
@@ -71,6 +72,7 @@ export default function AdminServices() {
       fetchServices()
     } catch (error) {
       console.error('Error deleting service:', error)
+      alert(`Failed to delete service: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
