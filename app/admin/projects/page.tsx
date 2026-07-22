@@ -135,13 +135,13 @@ export default function AdminProjects() {
 
   const handleEditProject = (project: Project) => {
     setFormData({
-      company_name: project.company_name,
-      name: project.name,
-      category: project.category,
-      description: project.description,
-      website_url: project.website_url,
-      logo_url: project.logo_url,
-      status: project.status,
+      company_name: project.company_name || '',
+      name: project.name || '',
+      category: project.category || '',
+      description: project.description || '',
+      website_url: project.website_url || '',
+      logo_url: project.logo_url || '',
+      status: project.status || 'Completed',
     })
     setEditingId(project.id)
     setShowForm(true)
@@ -221,7 +221,7 @@ export default function AdminProjects() {
             </div>
 
         <motion.button
-          onClick={() => handleCancelEdit()}
+          onClick={() => showForm ? handleCancelEdit() : setShowForm(true)}
           className="px-6 py-3 bg-gradient-to-r from-orange-primary to-red-orange text-white rounded-lg font-semibold"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
