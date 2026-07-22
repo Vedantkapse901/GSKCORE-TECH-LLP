@@ -28,6 +28,8 @@ export default function AdminProjects() {
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [logoFile, setLogoFile] = useState<File | null>(null)
+  const [logoPreview, setLogoPreview] = useState<string>('')
   const [formData, setFormData] = useState({
     company_name: '',
     name: '',
@@ -77,10 +79,49 @@ export default function AdminProjects() {
     }
   }
 
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setLogoFile(file)
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      setLogoPreview(e.target?.result as string)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const uploadLogo = async (file: File): Promise<string> => {
+    try {
+      const timestamp = Date.now()
+      const fileName = `${timestamp}-${file.name}`
+      const { data, error } = await supabase.storage
+        .from('project-logos')
+        .upload(fileName, file)
+
+      if (error) throw error
+
+      const { data: publicUrlData } = supabase.storage
+        .from('project-logos')
+        .getPublicUrl(fileName)
+
+      return publicUrlData.publicUrl
+    } catch (error) {
+      console.error('Error uploading logo:', error)
+      throw error
+    }
+  }
+
   const handleSubmitProject = async (e: React.FormEvent) => {
     e.preventDefault()
 
     try {
+      let logoUrl = formData.logo_url
+
+      if (logoFile) {
+        logoUrl = await uploadLogo(logoFile)
+      }
+
       if (editingId) {
         const { error } = await supabase
           .from('projects')
@@ -90,7 +131,7 @@ export default function AdminProjects() {
             category: formData.category,
             description: formData.description,
             website_url: formData.website_url,
-            logo_url: formData.logo_url,
+            logo_url: logoUrl,
             status: formData.status,
           })
           .eq('id', editingId)
@@ -105,7 +146,7 @@ export default function AdminProjects() {
             category: formData.category,
             description: formData.description,
             website_url: formData.website_url,
-            logo_url: formData.logo_url,
+            logo_url: logoUrl,
             status: formData.status,
           },
         ])
@@ -123,6 +164,8 @@ export default function AdminProjects() {
         logo_url: '',
         status: 'Completed',
       })
+      setLogoFile(null)
+      setLogoPreview('')
       setShowForm(false)
       setEditingId(null)
       fetchProjects()
@@ -143,6 +186,8 @@ export default function AdminProjects() {
       logo_url: project.logo_url || '',
       status: project.status || 'Completed',
     })
+    setLogoFile(null)
+    setLogoPreview(project.logo_url || '')
     setEditingId(project.id)
     setShowForm(true)
   }
@@ -157,6 +202,8 @@ export default function AdminProjects() {
       logo_url: '',
       status: 'Completed',
     })
+    setLogoFile(null)
+    setLogoPreview('')
     setShowForm(false)
     setEditingId(null)
   }
@@ -346,18 +393,23 @@ export default function AdminProjects() {
 
             <div>
               <label className="block text-sm font-semibold mb-2">
-                Company Logo URL
+                Company Logo
               </label>
               <input
-                type="url"
-                value={formData.logo_url}
-                onChange={(e) =>
-                  setFormData({ ...formData, logo_url: e.target.value })
-                }
+                type="file"
+                accept="image/*"
+                onChange={handleLogoChange}
                 className="w-full px-4 py-2 bg-dark-bg border border-orange-primary/20 rounded-lg text-gray-light focus:outline-none focus:border-orange-primary"
-                placeholder="https://example.com/logo.png"
-                required
               />
+              {logoPreview && (
+                <div className="mt-4 flex justify-center">
+                  <img
+                    src={logoPreview}
+                    alt="Logo preview"
+                    className="max-h-32 max-w-xs rounded-lg"
+                  />
+                </div>
+              )}
             </div>
 
             <button
