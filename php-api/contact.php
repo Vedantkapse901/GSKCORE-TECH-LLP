@@ -24,4 +24,25 @@ $stmt = get_db()->prepare(
 );
 $stmt->execute([$name, $email, $subject ?: null, $message]);
 
+// Best-effort email notification — the submission is already safely stored
+// in the database above, so a mail failure here must never fail the request.
+if (defined('NOTIFY_EMAIL') && NOTIFY_EMAIL) {
+  // Strip anything that could be used for header injection via crafted input.
+  $clean = fn($s) => str_replace(["\r", "\n"], ' ', $s);
+
+  $mailSubject = 'New website enquiry: ' . $clean($subject ?: $name);
+  $body = "You have a new enquiry from the GSKCORE TECH website.\n\n"
+    . "Name: {$name}\n"
+    . "Email: {$email}\n"
+    . "Subject: " . ($subject ?: '(none)') . "\n\n"
+    . "Message:\n{$message}\n";
+
+  $fromAddress = defined('NOTIFY_FROM') && NOTIFY_FROM ? NOTIFY_FROM : NOTIFY_EMAIL;
+  $headers = "From: GSKCORE TECH Website <{$fromAddress}>\r\n"
+    . "Reply-To: {$clean($name)} <{$email}>\r\n"
+    . "Content-Type: text/plain; charset=UTF-8\r\n";
+
+  @mail(NOTIFY_EMAIL, $mailSubject, $body, $headers);
+}
+
 json_out(['ok' => true], 201);

@@ -19,3 +19,10 @@ define('ALLOWED_ORIGINS', [
 // --- Where uploaded logos are publicly reachable ---
 define('UPLOADS_URL', 'https://api.gskcoretech.com/uploads');
 define('UPLOADS_DIR', __DIR__ . '/uploads');
+
+// --- Contact form notifications ---
+// Where new enquiries get emailed.
+define('NOTIFY_EMAIL', 'gskcoretech@gmail.com');
+// The "From" address for that notification — use an address at your own
+// domain (not gmail.com) so mail servers don't flag it as spoofed.
+define('NOTIFY_FROM', 'noreply@gskcoretech.com');
