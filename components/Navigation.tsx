@@ -6,6 +6,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 const navItems = [
+  { label: 'Home', href: '/' },
   { label: 'Services', href: '/services' },
   { label: 'Work', href: '/portfolio' },
   { label: 'About', href: '/about' },
@@ -69,7 +70,7 @@ export default function Navigation() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
         <Link
           href="/"
-          className="w-12 h-12 sm:w-14 sm:h-14 relative flex-shrink-0"
+          className="w-16 h-16 sm:w-20 sm:h-20 relative flex-shrink-0"
           aria-label="GSKCORE TECH LLP home"
         >
           <Image src="/logo1.png" alt="GSKCORE TECH LLP" fill className="object-contain" priority />
