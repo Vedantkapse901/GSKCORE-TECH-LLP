@@ -2,20 +2,19 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { supabase } from '@/lib/supabase'
+import { getProjects, getServices, type Project } from '@/lib/api'
 import Link from 'next/link'
+import CountUpStat from '@/components/CountUpStat'
 
 interface DashboardStats {
   totalProjects: number
-  totalClients: number
   totalServices: number
-  recentProjects: any[]
+  recentProjects: Project[]
 }
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats>({
     totalProjects: 0,
-    totalClients: 0,
     totalServices: 0,
     recentProjects: [],
   })
@@ -27,25 +26,12 @@ export default function AdminDashboard() {
       try {
         setLoading(true)
 
-        // Fetch from Supabase tables
-        const { data: projectsData, error: projectsError } = await supabase
-          .from('projects')
-          .select('*')
-          .limit(10)
-
-        const { data: clientsData, error: clientsError } = await supabase
-          .from('clients')
-          .select('count', { count: 'exact' })
-
-        const { data: servicesData, error: servicesError } = await supabase
-          .from('services')
-          .select('count', { count: 'exact' })
+        const [projectsData, servicesData] = await Promise.all([getProjects(), getServices()])
 
         setStats({
-          totalProjects: projectsData?.length || 0,
-          totalClients: clientsData?.[0]?.count || 0,
-          totalServices: servicesData?.[0]?.count || 0,
-          recentProjects: projectsData || [],
+          totalProjects: projectsData.length,
+          totalServices: servicesData.length,
+          recentProjects: projectsData.slice(0, 10),
         })
       } catch (error) {
         console.error('Error fetching stats:', error)
@@ -58,16 +44,15 @@ export default function AdminDashboard() {
   }, [])
 
   const statCards = [
-    { label: 'Total Projects', value: stats.totalProjects, icon: '📁', color: 'from-orange-primary' },
-    { label: 'Total Clients', value: stats.totalClients, icon: '👥', color: 'from-orange-bright' },
-    { label: 'Total Services', value: stats.totalServices, icon: '⚙️', color: 'from-red-orange' },
+    { label: 'Total Projects', value: stats.totalProjects, icon: '📁' },
+    { label: 'Total Services', value: stats.totalServices, icon: '⚙️' },
   ]
 
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
       <motion.div
-        className="fixed left-0 top-20 h-[calc(100vh-80px)] bg-dark-surface border-r border-orange-primary/20 overflow-y-auto z-40"
+        className="fixed left-0 top-20 h-[calc(100vh-80px)] bg-dark-surface border-r border-white/10 overflow-y-auto z-40"
         animate={{ width: sidebarOpen ? 256 : 0 }}
         transition={{ duration: 0.3 }}
       >
@@ -76,7 +61,7 @@ export default function AdminDashboard() {
             <Link href="/admin" className="block px-4 py-2 rounded-lg hover:bg-orange-primary/10 text-gray-light">Dashboard</Link>
             <Link href="/admin/projects" className="block px-4 py-2 rounded-lg hover:bg-orange-primary/10 text-gray-light">Projects</Link>
             <Link href="/admin/services" className="block px-4 py-2 rounded-lg hover:bg-orange-primary/10 text-gray-light">Services</Link>
-            <hr className="border-orange-primary/20" />
+            <hr className="border-white/10" />
             <a href="/" className="block px-4 py-2 rounded-lg hover:bg-orange-primary/10 text-gray-light">Back to Site</a>
           </div>
         )}
@@ -100,13 +85,13 @@ export default function AdminDashboard() {
         <div className="px-4 py-8 pt-4">
           {/* Page Header */}
           <motion.div className="mb-12" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <h1 className="text-4xl md:text-5xl font-bold mb-2">Dashboard</h1>
-            <p className="text-gray-light/60">Manage your projects, clients, and services</p>
+            <h1 className="display-type text-4xl md:text-5xl mb-2">Dashboard</h1>
+            <p className="text-gray-secondary">Manage your projects, clients, and services</p>
           </motion.div>
 
       {/* Stats Grid */}
       <motion.div
-        className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12"
+        className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ staggerChildren: 0.1 }}
@@ -114,7 +99,7 @@ export default function AdminDashboard() {
         {statCards.map((stat, index) => (
           <motion.div
             key={index}
-            className={`glass rounded-2xl p-8 border border-orange-primary/20`}
+            className={`bg-surface rounded-2xl p-8 border border-white/10`}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: index * 0.1 }}
@@ -122,8 +107,12 @@ export default function AdminDashboard() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-light/60 text-sm mb-2">{stat.label}</p>
-                <p className="text-4xl font-bold">{loading ? '-' : stat.value}</p>
+                <p className="text-gray-secondary text-sm mb-2">{stat.label}</p>
+                {loading ? (
+                  <p className="text-4xl font-bold">-</p>
+                ) : (
+                  <CountUpStat value={`${stat.value}`} className="display-type text-4xl text-gray-light" />
+                )}
               </div>
               <div className="text-5xl opacity-50">{stat.icon}</div>
             </div>
@@ -133,7 +122,7 @@ export default function AdminDashboard() {
 
       {/* Recent Projects */}
       <motion.div
-        className="glass rounded-2xl p-8 border border-orange-primary/20"
+        className="bg-surface rounded-2xl p-8 border border-white/10"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
@@ -164,7 +153,7 @@ export default function AdminDashboard() {
                     animate={{ opacity: 1 }}
                     transition={{ delay: index * 0.1 }}
                   >
-                    <td className="py-4 px-4">{project.name || project.title}</td>
+                    <td className="py-4 px-4">{project.name}</td>
                     <td className="py-4 px-4">
                       <span className="px-3 py-1 bg-orange-primary/20 text-orange-primary rounded-full text-sm">
                         {project.status || 'Active'}
@@ -204,7 +193,7 @@ export default function AdminDashboard() {
           <a
             key={index}
             href={action.href}
-            className="glass rounded-2xl p-8 border border-orange-primary/20 hover:border-orange-primary/50 hover:bg-orange-primary/5 transition-all group"
+            className="bg-surface rounded-2xl p-8 border border-white/10 hover:border-orange-primary/50 hover:bg-orange-primary/5 transition-all group"
           >
             <div className="flex items-center gap-4">
               <span className="text-5xl opacity-50 group-hover:opacity-100 transition-opacity">{action.icon}</span>

@@ -2,31 +2,24 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { supabase } from '@/lib/supabase'
-
-interface Project {
-  id: string
-  company_name: string
-  name: string
-  category: string
-  description: string
-  status: string
-  website_url: string
-  logo_url: string
-  created_at: string
-}
-
-interface Category {
-  id: string
-  name: string
-}
+import {
+  getProjects,
+  getCategories,
+  adminCreateProject,
+  adminUpdateProject,
+  adminDeleteProject,
+  adminCreateCategory,
+  uploadLogo as uploadLogoFile,
+  type Project,
+  type Category,
+} from '@/lib/api'
 
 export default function AdminProjects() {
   const [projects, setProjects] = useState<Project[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
-  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editingId, setEditingId] = useState<number | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [logoPreview, setLogoPreview] = useState<string>('')
@@ -48,16 +41,8 @@ export default function AdminProjects() {
   const fetchProjects = async () => {
     try {
       setLoading(true)
-      const { data, error } = await supabase
-        .from('projects')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (error) {
-        console.error('Supabase error:', error)
-        throw error
-      }
-      setProjects(data || [])
+      const data = await getProjects()
+      setProjects(data)
     } catch (error) {
       console.error('Error fetching projects:', error)
     } finally {
@@ -67,13 +52,8 @@ export default function AdminProjects() {
 
   const fetchCategories = async () => {
     try {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name', { ascending: true })
-
-      if (error) throw error
-      setCategories(data || [])
+      const data = await getCategories()
+      setCategories(data)
     } catch (error) {
       console.error('Error fetching categories:', error)
     }
@@ -91,27 +71,6 @@ export default function AdminProjects() {
     reader.readAsDataURL(file)
   }
 
-  const uploadLogo = async (file: File): Promise<string> => {
-    try {
-      const timestamp = Date.now()
-      const fileName = `${timestamp}-${file.name}`
-      const { data, error } = await supabase.storage
-        .from('project-logos')
-        .upload(fileName, file)
-
-      if (error) throw error
-
-      const { data: publicUrlData } = supabase.storage
-        .from('project-logos')
-        .getPublicUrl(fileName)
-
-      return publicUrlData.publicUrl
-    } catch (error) {
-      console.error('Error uploading logo:', error)
-      throw error
-    }
-  }
-
   const handleSubmitProject = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -119,39 +78,29 @@ export default function AdminProjects() {
       let logoUrl = formData.logo_url
 
       if (logoFile) {
-        logoUrl = await uploadLogo(logoFile)
+        logoUrl = await uploadLogoFile(logoFile)
+      }
+
+      // If the chosen category isn't in the list yet, save it so it shows up next time.
+      if (formData.category && !categories.some((c) => c.name === formData.category)) {
+        await adminCreateCategory(formData.category)
+      }
+
+      const payload = {
+        company_name: formData.company_name,
+        name: formData.name,
+        category: formData.category,
+        description: formData.description,
+        website_url: formData.website_url,
+        logo_url: logoUrl,
+        status: formData.status,
       }
 
       if (editingId) {
-        const { error } = await supabase
-          .from('projects')
-          .update({
-            company_name: formData.company_name,
-            name: formData.name,
-            category: formData.category,
-            description: formData.description,
-            website_url: formData.website_url,
-            logo_url: logoUrl,
-            status: formData.status,
-          })
-          .eq('id', editingId)
-
-        if (error) throw error
+        await adminUpdateProject(editingId, payload)
         alert('Project updated successfully!')
       } else {
-        const { error } = await supabase.from('projects').insert([
-          {
-            company_name: formData.company_name,
-            name: formData.name,
-            category: formData.category,
-            description: formData.description,
-            website_url: formData.website_url,
-            logo_url: logoUrl,
-            status: formData.status,
-          },
-        ])
-
-        if (error) throw error
+        await adminCreateProject(payload)
         alert('Project added successfully!')
       }
 
@@ -169,6 +118,7 @@ export default function AdminProjects() {
       setShowForm(false)
       setEditingId(null)
       fetchProjects()
+      fetchCategories()
     } catch (error) {
       console.error('Error saving project:', error)
       const errorMsg = error instanceof Error ? error.message : 'Please try again'
@@ -208,12 +158,10 @@ export default function AdminProjects() {
     setEditingId(null)
   }
 
-  const handleDeleteProject = async (id: string) => {
+  const handleDeleteProject = async (id: number) => {
     if (confirm('Are you sure you want to delete this project?')) {
       try {
-        const { error } = await supabase.from('projects').delete().eq('id', id)
-
-        if (error) throw error
+        await adminDeleteProject(id)
         fetchProjects()
         alert('Project deleted successfully!')
       } catch (error) {
@@ -227,7 +175,7 @@ export default function AdminProjects() {
     <div className="flex h-screen">
       {/* Sidebar */}
       <motion.div
-        className="fixed left-0 top-20 h-[calc(100vh-80px)] bg-dark-surface border-r border-orange-primary/20 overflow-y-auto z-40"
+        className="fixed left-0 top-20 h-[calc(100vh-80px)] bg-dark-surface border-r border-white/10 overflow-y-auto z-40"
         animate={{ width: sidebarOpen ? 256 : 0 }}
         transition={{ duration: 0.3 }}
       >
@@ -236,7 +184,7 @@ export default function AdminProjects() {
             <a href="/admin" className="block px-4 py-2 rounded-lg hover:bg-orange-primary/10 text-gray-light">Dashboard</a>
             <a href="/admin/projects" className="block px-4 py-2 rounded-lg bg-orange-primary/10 text-orange-primary">Projects</a>
             <a href="/admin/services" className="block px-4 py-2 rounded-lg hover:bg-orange-primary/10 text-gray-light">Services</a>
-            <hr className="border-orange-primary/20" />
+            <hr className="border-white/10" />
             <a href="/" className="block px-4 py-2 rounded-lg hover:bg-orange-primary/10 text-gray-light">Back to Site</a>
           </div>
         )}
@@ -263,13 +211,13 @@ export default function AdminProjects() {
             animate={{ opacity: 1, y: 0 }}
           >
             <div>
-              <h1 className="text-4xl font-bold mb-2">Projects</h1>
-              <p className="text-gray-light/60">Manage all your projects</p>
+              <h1 className="display-type text-4xl mb-2">Projects</h1>
+              <p className="text-gray-secondary">Manage all your projects</p>
             </div>
 
         <motion.button
           onClick={() => showForm ? handleCancelEdit() : setShowForm(true)}
-          className="px-6 py-3 bg-gradient-to-r from-orange-primary to-red-orange text-white rounded-lg font-semibold"
+          className="px-6 py-3 bg-orange-primary text-black rounded-full font-semibold hover:shadow-[0_0_24px_rgba(255,106,0,0.45)] transition-shadow"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
@@ -279,7 +227,7 @@ export default function AdminProjects() {
 
       {showForm && (
         <motion.div
-          className="glass rounded-2xl p-8 border border-orange-primary/20 mb-12"
+          className="bg-surface rounded-2xl p-8 border border-white/10 mb-12"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
         >
@@ -298,7 +246,7 @@ export default function AdminProjects() {
                   onChange={(e) =>
                     setFormData({ ...formData, company_name: e.target.value })
                   }
-                  className="w-full px-4 py-2 bg-dark-bg border border-orange-primary/20 rounded-lg text-gray-light focus:outline-none focus:border-orange-primary"
+                  className="w-full px-4 py-2 bg-dark-bg border border-white/10 rounded-lg text-gray-light focus:outline-none focus:border-orange-primary"
                   placeholder="e.g., TechStart Inc"
                   required
                 />
@@ -312,7 +260,7 @@ export default function AdminProjects() {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2 bg-dark-bg border border-orange-primary/20 rounded-lg text-gray-light focus:outline-none focus:border-orange-primary"
+                  className="w-full px-4 py-2 bg-dark-bg border border-white/10 rounded-lg text-gray-light focus:outline-none focus:border-orange-primary"
                   placeholder="e.g., E-Commerce Platform"
                   required
                 />
@@ -329,7 +277,7 @@ export default function AdminProjects() {
                   onChange={(e) =>
                     setFormData({ ...formData, category: e.target.value })
                   }
-                  className="w-full px-4 py-2 bg-dark-bg border border-orange-primary/20 rounded-lg text-gray-light focus:outline-none focus:border-orange-primary"
+                  className="w-full px-4 py-2 bg-dark-bg border border-white/10 rounded-lg text-gray-light focus:outline-none focus:border-orange-primary"
                   required
                 >
                   <option value="">Select Category</option>
@@ -350,7 +298,7 @@ export default function AdminProjects() {
                   onChange={(e) =>
                     setFormData({ ...formData, status: e.target.value })
                   }
-                  className="w-full px-4 py-2 bg-dark-bg border border-orange-primary/20 rounded-lg text-gray-light focus:outline-none focus:border-orange-primary"
+                  className="w-full px-4 py-2 bg-dark-bg border border-white/10 rounded-lg text-gray-light focus:outline-none focus:border-orange-primary"
                 >
                   <option value="Completed">Completed</option>
                   <option value="In Progress">In Progress</option>
@@ -369,7 +317,7 @@ export default function AdminProjects() {
                   setFormData({ ...formData, description: e.target.value })
                 }
                 rows={4}
-                className="w-full px-4 py-2 bg-dark-bg border border-orange-primary/20 rounded-lg text-gray-light focus:outline-none focus:border-orange-primary resize-none"
+                className="w-full px-4 py-2 bg-dark-bg border border-white/10 rounded-lg text-gray-light focus:outline-none focus:border-orange-primary resize-none"
                 placeholder="Brief description of the project..."
                 required
               />
@@ -385,7 +333,7 @@ export default function AdminProjects() {
                 onChange={(e) =>
                   setFormData({ ...formData, website_url: e.target.value })
                 }
-                className="w-full px-4 py-2 bg-dark-bg border border-orange-primary/20 rounded-lg text-gray-light focus:outline-none focus:border-orange-primary"
+                className="w-full px-4 py-2 bg-dark-bg border border-white/10 rounded-lg text-gray-light focus:outline-none focus:border-orange-primary"
                 placeholder="https://example.com"
                 required
               />
@@ -399,7 +347,7 @@ export default function AdminProjects() {
                 type="file"
                 accept="image/*"
                 onChange={handleLogoChange}
-                className="w-full px-4 py-2 bg-dark-bg border border-orange-primary/20 rounded-lg text-gray-light focus:outline-none focus:border-orange-primary"
+                className="w-full px-4 py-2 bg-dark-bg border border-white/10 rounded-lg text-gray-light focus:outline-none focus:border-orange-primary"
               />
               {logoPreview && (
                 <div className="mt-4 flex justify-center">
@@ -414,7 +362,7 @@ export default function AdminProjects() {
 
             <button
               type="submit"
-              className="w-full px-6 py-3 bg-gradient-to-r from-orange-primary to-red-orange text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-orange-primary/50 transition-all"
+              className="w-full px-6 py-3 bg-orange-primary text-black rounded-full font-semibold hover:shadow-[0_0_24px_rgba(255,106,0,0.45)] transition-shadow"
             >
               {editingId ? 'Update Project' : 'Add Project'}
             </button>
@@ -423,7 +371,7 @@ export default function AdminProjects() {
       )}
 
       <motion.div
-        className="glass rounded-2xl p-8 border border-orange-primary/20"
+        className="bg-surface rounded-2xl p-8 border border-white/10"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
@@ -436,7 +384,7 @@ export default function AdminProjects() {
         ) : projects.length > 0 ? (
           <div className="overflow-x-auto">
             <div className="min-w-full">
-              <div className="grid grid-cols-7 gap-4 mb-4 pb-4 border-b border-orange-primary/20 font-semibold text-gray-light/70">
+              <div className="grid grid-cols-7 gap-4 mb-4 pb-4 border-b border-white/10 font-semibold text-gray-light/70">
                 <div>Company</div>
                 <div>Project</div>
                 <div>Category</div>
@@ -513,7 +461,7 @@ export default function AdminProjects() {
             <p className="text-gray-light/60 mb-4">No projects yet</p>
             <motion.button
               onClick={() => setShowForm(true)}
-              className="px-6 py-2 bg-orange-primary text-white rounded-lg hover:bg-orange-bright transition-colors"
+              className="px-6 py-2 bg-orange-primary text-black rounded-full hover:shadow-[0_0_24px_rgba(255,106,0,0.45)] transition-shadow"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >

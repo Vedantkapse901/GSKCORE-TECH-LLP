@@ -8,15 +8,19 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        'dark-bg': '#0a0a0a',
-        'dark-surface': '#121212',
-        'orange-primary': '#ff6b35',
-        'orange-bright': '#ff8c5a',
-        'orange-golden': '#ffa54f',
-        'red-orange': '#ff5e1a',
-        'orange-glow': '#ff6b35',
-        'gray-light': '#e8e8e8',
-        'gray-lighter': '#f5f5f5',
+        'dark-bg': '#080808',
+        'dark-surface': '#101010',
+        'surface': '#141414',
+        'elevated': '#1a1a1a',
+        'orange-primary': '#ff6a00',
+        'orange-bright': '#ff9a24',
+        'orange-golden': '#ff9a24',
+        'deep-orange': '#ff4d00',
+        'red-orange': '#ff3d00',
+        'orange-glow': '#ff6a00',
+        'gray-light': '#f2f2f2',
+        'gray-lighter': '#ffffff',
+        'gray-secondary': '#a3a3a3',
       },
       fontFamily: {
         sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],

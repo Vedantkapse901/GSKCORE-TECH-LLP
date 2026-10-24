@@ -4,19 +4,7 @@ import { motion } from 'framer-motion'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
-
-interface Project {
-  id: string
-  company_name: string
-  name: string
-  category: string
-  description: string
-  status: string
-  website_url: string
-  logo_url: string
-  created_at: string
-}
+import { getProjects, type Project } from '@/lib/api'
 
 export default function PortfolioPage() {
   const [projects, setProjects] = useState<Project[]>([])
@@ -30,13 +18,8 @@ export default function PortfolioPage() {
   const fetchProjects = async () => {
     try {
       setLoading(true)
-      const { data, error } = await supabase
-        .from('projects')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
-      setProjects(data || [])
+      const data = await getProjects()
+      setProjects(data)
     } catch (error) {
       console.error('Error fetching projects:', error)
     } finally {
@@ -55,133 +38,125 @@ export default function PortfolioPage() {
     <main className="w-full bg-dark-bg">
       <Navigation />
 
-      {/* Hero Section */}
-      <section className="relative w-full min-h-screen bg-gradient-to-b from-dark-surface to-dark-bg pt-56 pb-20">
-        <div className="max-w-7xl mx-auto px-4">
-          <motion.div
-            className="text-center mb-20"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-              Our <span className="bg-gradient-to-r from-orange-primary to-orange-bright bg-clip-text text-transparent">Portfolio</span>
-            </h1>
-            <p className="text-gray-light/70 max-w-3xl mx-auto text-xl">
-              Showcasing 200+ successful projects across diverse industries and technologies
-            </p>
-          </motion.div>
+      {/* Page header */}
+      <section className="relative w-full pt-40 pb-16 px-6 sm:px-10 lg:px-16 border-b border-white/10">
+        <motion.p
+          className="text-xs font-semibold tracking-[0.3em] text-orange-primary mb-6 uppercase"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          Selected work
+        </motion.p>
+        <motion.h1
+          className="display-type text-5xl md:text-7xl text-gray-light mb-8 max-w-4xl"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          Real projects, <span className="text-orange-primary">real outcomes.</span>
+        </motion.h1>
 
-          {/* Category Filter */}
-          <motion.div
-            className="flex flex-wrap justify-center gap-4 mb-16"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-          >
-            {categories.map((category) => (
-              <motion.button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={`px-6 py-2 rounded-lg font-semibold transition-all ${
-                  selectedCategory === category
-                    ? 'bg-gradient-to-r from-orange-primary to-red-orange text-white'
-                    : 'glass text-gray-light hover:text-orange-primary'
-                }`}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {category}
-              </motion.button>
-            ))}
-          </motion.div>
-
-          {/* Projects Grid */}
-          {loading ? (
-            <div className="text-center py-20">
-              <p className="text-gray-light/60">Loading projects...</p>
-            </div>
-          ) : filteredProjects.length > 0 ? (
-            <motion.div
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.8 }}
+        {/* Category filter */}
+        <motion.div
+          className="flex flex-wrap gap-6 mt-10"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          {categories.map((category) => (
+            <button
+              key={category}
+              onClick={() => setSelectedCategory(category)}
+              className={`text-sm font-medium tracking-wide pb-2 border-b-2 transition-colors ${
+                selectedCategory === category
+                  ? 'text-orange-primary border-orange-primary'
+                  : 'text-gray-secondary border-transparent hover:text-gray-light'
+              }`}
             >
+              {category}
+            </button>
+          ))}
+        </motion.div>
+      </section>
+
+      {/* Projects list */}
+      <section className="w-full px-6 sm:px-10 lg:px-16 py-16">
+        <div className="max-w-5xl mx-auto">
+          {loading ? (
+            <div className="py-12 text-gray-secondary">Loading projects…</div>
+          ) : filteredProjects.length > 0 ? (
+            <ul>
               {filteredProjects.map((project, index) => (
-                <motion.a
+                <motion.li
                   key={project.id}
-                  href={project.website_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="glass rounded-2xl p-8 cursor-pointer group block h-full flex flex-col"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{
-                    y: -10,
-                    boxShadow: '0 0 40px rgba(255, 107, 53, 0.3)',
-                  }}
+                  className="border-b border-white/10 first:border-t"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.05 }}
                 >
-                  {/* Company Logo */}
-                  {project.logo_url && (
-                    <div className="mb-4 flex justify-center">
+                  <a
+                    href={project.website_url || undefined}
+                    target={project.website_url ? '_blank' : undefined}
+                    rel={project.website_url ? 'noopener noreferrer' : undefined}
+                    className="group flex flex-col md:flex-row md:items-center gap-4 md:gap-10 py-10"
+                  >
+                    <span className="section-index text-sm text-gray-secondary w-10 shrink-0">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+
+                    {project.logo_url ? (
                       <img
                         src={project.logo_url}
                         alt={project.company_name}
-                        className="h-16 object-contain"
+                        className="h-12 w-12 object-contain shrink-0 rounded-lg bg-white/5 p-2"
                       />
-                    </div>
-                  )}
+                    ) : (
+                      <div className="h-12 w-12 shrink-0" />
+                    )}
 
-                  {/* Status Tag */}
-                  <div className={`inline-block px-3 py-1 text-sm font-semibold rounded-full mb-4 ${
-                    project.status === 'Completed'
-                      ? 'bg-green-500/20 text-green-400'
-                      : project.status === 'Pending'
-                      ? 'bg-yellow-500/20 text-yellow-400'
-                      : 'bg-orange-primary/20 text-orange-primary'
-                  }`}>
-                    {project.status}
-                  </div>
+                    <span className="flex-1 min-w-0 block">
+                      <span className="flex items-center gap-3 flex-wrap mb-1">
+                        <span className="text-2xl md:text-4xl font-bold text-gray-light group-hover:text-orange-primary transition-colors">
+                          {project.name}
+                        </span>
+                        <span
+                          className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                            project.status === 'Completed'
+                              ? 'bg-green-500/15 text-green-400'
+                              : project.status === 'Pending'
+                              ? 'bg-yellow-500/15 text-yellow-400'
+                              : 'bg-orange-primary/15 text-orange-primary'
+                          }`}
+                        >
+                          {project.status}
+                        </span>
+                      </span>
+                      <span className="block text-sm text-orange-primary font-medium mb-2">
+                        {project.company_name}
+                      </span>
+                      <span className="block text-gray-secondary max-w-xl">{project.description}</span>
+                    </span>
 
-                  {/* Category Tag */}
-                  <div className="inline-block px-3 py-1 bg-orange-primary/20 text-orange-primary text-sm font-semibold rounded-full mb-4 ml-2">
-                    {project.category}
-                  </div>
-
-                  {/* Company Name */}
-                  <p className="text-sm text-orange-primary font-semibold mb-2">
-                    {project.company_name}
-                  </p>
-
-                  {/* Project Title */}
-                  <h3 className="text-2xl font-bold mb-3 group-hover:text-orange-primary transition-colors">
-                    {project.name}
-                  </h3>
-
-                  {/* Description */}
-                  <p className="text-gray-light/70 mb-6">{project.description}</p>
-
-                  {/* Date */}
-                  <p className="text-sm text-gray-light/50 mb-4">
-                    {new Date(project.created_at).toLocaleDateString()}
-                  </p>
-
-                  {/* Visit Website Link */}
-                  <motion.div
-                    className="inline-flex items-center gap-2 mt-auto text-orange-primary font-semibold group-hover:gap-4 transition-all"
-                  >
-                    Visit Website
-                    <span>↗</span>
-                  </motion.div>
-                </motion.a>
+                    <span className="shrink-0 flex items-center gap-4">
+                      <span className="text-sm text-gray-secondary font-medium whitespace-nowrap">
+                        {project.category}
+                      </span>
+                      {project.website_url && (
+                        <span
+                          className="text-orange-primary text-xl group-hover:translate-x-1 transition-transform"
+                          aria-hidden="true"
+                        >
+                          ↗
+                        </span>
+                      )}
+                    </span>
+                  </a>
+                </motion.li>
               ))}
-            </motion.div>
+            </ul>
           ) : (
-            <div className="text-center py-20">
-              <p className="text-gray-light/60">No projects yet</p>
-            </div>
+            <div className="py-12 text-gray-secondary">No projects in this category yet.</div>
           )}
         </div>
       </section>

@@ -1,0 +1,4 @@
+config.php
+data-import.sql
+uploads/*
+!uploads/.gitkeep

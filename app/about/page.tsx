@@ -3,26 +3,22 @@
 import { motion } from 'framer-motion'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
-import Image from 'next/image'
+import CountUpStat from '@/components/CountUpStat'
 
 const values = [
   {
-    icon: '🎯',
     title: 'Innovation First',
     description: 'We constantly push boundaries and embrace cutting-edge technologies to deliver next-generation solutions.',
   },
   {
-    icon: '👥',
     title: 'Client Focused',
     description: 'Your success is our success. We partner with you to understand and achieve your business objectives.',
   },
   {
-    icon: '⚡',
     title: 'Excellence',
     description: 'We maintain the highest standards of quality, performance, and security in everything we build.',
   },
   {
-    icon: '🤝',
     title: 'Transparency',
     description: 'Open communication and clear expectations are the foundation of our client relationships.',
   },
@@ -36,142 +32,156 @@ const team = [
   { name: 'QA Engineers', count: '5', role: 'Quality Assurance' },
 ]
 
+const stats = [
+  { label: 'Projects Delivered', value: '200+' },
+  { label: 'Happy Clients', value: '150+' },
+  { label: 'Years in Business', value: '10+' },
+  { label: 'Industries Served', value: '20+' },
+]
+
 export default function AboutPage() {
   return (
     <main className="w-full bg-dark-bg">
       <Navigation />
 
-      {/* Hero Section */}
-      <section className="relative w-full min-h-screen bg-gradient-to-b from-dark-surface to-dark-bg pt-32 pb-20">
-        <div className="max-w-7xl mx-auto px-4">
+      {/* Page header */}
+      <section className="relative w-full pt-40 pb-20 px-6 sm:px-10 lg:px-16 border-b border-white/10">
+        <motion.p
+          className="text-xs font-semibold tracking-[0.3em] text-orange-primary mb-6 uppercase"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          About us
+        </motion.p>
+        <motion.h1
+          className="display-type text-5xl md:text-7xl text-gray-light mb-8 max-w-4xl"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          About <span className="text-orange-primary">GSKCORE TECH.</span>
+        </motion.h1>
+        <motion.p
+          className="text-lg text-gray-secondary max-w-xl"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          A digital transformation partner trusted by startups, enterprises, and everything in between.
+        </motion.p>
+      </section>
+
+      {/* Mission & Vision */}
+      <section className="w-full px-6 sm:px-10 lg:px-16 py-20 border-b border-white/10">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16">
           <motion.div
-            className="text-center mb-20"
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
           >
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-              About <span className="bg-gradient-to-r from-orange-primary to-orange-bright bg-clip-text text-transparent">GSKCORE</span>
-            </h1>
-            <p className="text-gray-light/70 max-w-3xl mx-auto text-xl">
-              A digital transformation partner trusted by startups, enterprises, and everything in between.
+            <h2 className="text-2xl font-bold mb-4 text-orange-primary">Our Mission</h2>
+            <p className="text-gray-secondary text-lg leading-relaxed">
+              To transform ambitious ideas into scalable digital products that drive real business
+              value. We believe in combining technical excellence with deep business understanding
+              to create solutions that matter.
             </p>
           </motion.div>
 
-          {/* Mission & Vision */}
           <motion.div
-            className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-24"
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
           >
-            <div className="glass rounded-2xl p-8">
-              <h2 className="text-3xl font-bold mb-4 text-orange-primary">Our Mission</h2>
-              <p className="text-gray-light/70 text-lg leading-relaxed">
-                To transform ambitious ideas into scalable digital products that drive real business value. We believe in
-                combining technical excellence with deep business understanding to create solutions that matter.
-              </p>
-            </div>
-
-            <div className="glass rounded-2xl p-8">
-              <h2 className="text-3xl font-bold mb-4 text-orange-primary">Our Vision</h2>
-              <p className="text-gray-light/70 text-lg leading-relaxed">
-                To be the most trusted digital transformation partner globally, known for building innovative,
-                scalable, and future-proof solutions that empower businesses to compete in the digital age.
-              </p>
-            </div>
+            <h2 className="text-2xl font-bold mb-4 text-orange-primary">Our Vision</h2>
+            <p className="text-gray-secondary text-lg leading-relaxed">
+              To be the most trusted digital transformation partner globally, known for building
+              innovative, scalable, and future-proof solutions that empower businesses to compete
+              in the digital age.
+            </p>
           </motion.div>
+        </div>
+      </section>
 
-          {/* Values */}
-          <motion.div
-            className="mb-24"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
+      {/* Core Values */}
+      <section className="w-full px-6 sm:px-10 lg:px-16 py-20 border-b border-white/10">
+        <div className="max-w-6xl mx-auto">
+          <motion.h2
+            className="display-type text-4xl md:text-5xl text-gray-light mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-4xl font-bold text-center mb-16">
-              Our <span className="bg-gradient-to-r from-orange-primary to-orange-bright bg-clip-text text-transparent">Core Values</span>
-            </h2>
+            Our <span className="text-orange-primary">core values.</span>
+          </motion.h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {values.map((value, index) => (
-                <motion.div
-                  key={index}
-                  className="glass rounded-2xl p-8"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  whileHover={{ y: -10 }}
-                >
-                  <div className="text-5xl mb-4">{value.icon}</div>
-                  <h3 className="text-2xl font-bold mb-3">{value.title}</h3>
-                  <p className="text-gray-light/70">{value.description}</p>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Team */}
-          <motion.div
-            className="mb-24"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-4xl font-bold text-center mb-16">
-              Our <span className="bg-gradient-to-r from-orange-primary to-orange-bright bg-clip-text text-transparent">Team</span>
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
-              {team.map((member, index) => (
-                <motion.div
-                  key={index}
-                  className="glass rounded-2xl p-8 text-center"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  whileHover={{ scale: 1.05 }}
-                >
-                  <div className="text-5xl font-bold bg-gradient-to-r from-orange-primary to-orange-bright bg-clip-text text-transparent mb-2">
-                    {member.count}+
-                  </div>
-                  <h3 className="text-xl font-bold mb-1">{member.name}</h3>
-                  <p className="text-gray-light/60 text-sm">{member.role}</p>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Stats */}
-          <motion.div
-            className="grid grid-cols-1 md:grid-cols-4 gap-8"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-          >
-            {[
-              { label: 'Projects Delivered', value: '200+' },
-              { label: 'Happy Clients', value: '150+' },
-              { label: 'Years in Business', value: '10+' },
-              { label: 'Industries Served', value: '20+' },
-            ].map((stat, index) => (
-              <motion.div
-                key={index}
-                className="glass rounded-2xl p-8 text-center"
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.1 }}
+          <ul>
+            {values.map((value, index) => (
+              <motion.li
+                key={value.title}
+                className="py-8 border-t border-white/10 last:border-b flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-10"
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
+                transition={{ delay: index * 0.06 }}
               >
-                <div className="text-4xl font-bold bg-gradient-to-r from-orange-primary to-orange-bright bg-clip-text text-transparent mb-2">
-                  {stat.value}
-                </div>
-                <p className="text-gray-light/60">{stat.label}</p>
+                <span className="section-index text-sm text-gray-secondary w-10 shrink-0">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+                <h3 className="text-xl font-bold text-gray-light w-full sm:w-64 shrink-0">{value.title}</h3>
+                <p className="text-gray-secondary leading-relaxed max-w-xl flex-1 min-w-0">{value.description}</p>
+              </motion.li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* Team */}
+      <section className="w-full px-6 sm:px-10 lg:px-16 py-20 border-b border-white/10">
+        <div className="max-w-6xl mx-auto">
+          <motion.h2
+            className="display-type text-4xl md:text-5xl text-gray-light mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            Our <span className="text-orange-primary">team.</span>
+          </motion.h2>
+
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-x-6 gap-y-12">
+            {team.map((member, index) => (
+              <motion.div
+                key={member.name}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.06 }}
+              >
+                <CountUpStat value={`${member.count}+`} className="display-type text-5xl text-orange-primary mb-2" />
+                <h3 className="text-lg font-bold text-gray-light">{member.name}</h3>
+                <p className="text-gray-secondary text-sm">{member.role}</p>
               </motion.div>
             ))}
-          </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats strip */}
+      <section className="w-full px-6 sm:px-10 lg:px-16 py-16">
+        <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4">
+          {stats.map((stat, index) => (
+            <motion.div
+              key={stat.label}
+              className={`py-6 md:py-0 text-center md:border-l border-white/10 ${index === 0 ? 'md:border-l-0' : ''}`}
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.06 }}
+            >
+              <CountUpStat value={stat.value} className="display-type text-4xl md:text-5xl text-gray-light mb-2" />
+              <p className="text-gray-secondary text-sm">{stat.label}</p>
+            </motion.div>
+          ))}
         </div>
       </section>
 

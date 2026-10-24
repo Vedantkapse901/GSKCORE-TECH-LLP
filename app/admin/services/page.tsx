@@ -2,15 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { supabase } from '@/lib/supabase'
-
-interface Service {
-  id: string
-  name: string
-  description: string
-  icon: string
-  created_at: string
-}
+import { getServices, adminCreateService, adminDeleteService, type Service } from '@/lib/api'
 
 export default function AdminServices() {
   const [services, setServices] = useState<Service[]>([])
@@ -30,10 +22,8 @@ export default function AdminServices() {
   const fetchServices = async () => {
     try {
       setLoading(true)
-      const { data, error } = await supabase.from('services').select('*').order('created_at', { ascending: false })
-
-      if (error) throw error
-      setServices(data || [])
+      const data = await getServices()
+      setServices(data)
     } catch (error) {
       console.error('Error fetching services:', error)
     } finally {
@@ -45,15 +35,11 @@ export default function AdminServices() {
     e.preventDefault()
 
     try {
-      const { error } = await supabase.from('services').insert([
-        {
-          name: formData.name,
-          description: formData.description,
-          icon: formData.icon,
-        },
-      ])
-
-      if (error) throw error
+      await adminCreateService({
+        name: formData.name,
+        description: formData.description,
+        icon: formData.icon,
+      })
 
       setFormData({ name: '', description: '', icon: '⚙️' })
       setShowForm(false)
@@ -64,11 +50,9 @@ export default function AdminServices() {
     }
   }
 
-  const handleDeleteService = async (id: string) => {
+  const handleDeleteService = async (id: number) => {
     try {
-      const { error } = await supabase.from('services').delete().eq('id', id)
-
-      if (error) throw error
+      await adminDeleteService(id)
       fetchServices()
     } catch (error) {
       console.error('Error deleting service:', error)
@@ -80,7 +64,7 @@ export default function AdminServices() {
     <div className="flex h-screen">
       {/* Sidebar */}
       <motion.div
-        className="fixed left-0 top-20 h-[calc(100vh-80px)] bg-dark-surface border-r border-orange-primary/20 overflow-y-auto z-40"
+        className="fixed left-0 top-20 h-[calc(100vh-80px)] bg-dark-surface border-r border-white/10 overflow-y-auto z-40"
         animate={{ width: sidebarOpen ? 256 : 0 }}
         transition={{ duration: 0.3 }}
       >
@@ -89,7 +73,7 @@ export default function AdminServices() {
             <a href="/admin" className="block px-4 py-2 rounded-lg hover:bg-orange-primary/10 text-gray-light">Dashboard</a>
             <a href="/admin/projects" className="block px-4 py-2 rounded-lg hover:bg-orange-primary/10 text-gray-light">Projects</a>
             <a href="/admin/services" className="block px-4 py-2 rounded-lg bg-orange-primary/10 text-orange-primary">Services</a>
-            <hr className="border-orange-primary/20" />
+            <hr className="border-white/10" />
             <a href="/" className="block px-4 py-2 rounded-lg hover:bg-orange-primary/10 text-gray-light">Back to Site</a>
           </div>
         )}
@@ -113,13 +97,13 @@ export default function AdminServices() {
           {/* Header */}
           <motion.div className="flex justify-between items-center mb-12" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <div>
-              <h1 className="text-4xl font-bold mb-2">Services</h1>
-              <p className="text-gray-light/60">Manage your service offerings</p>
+              <h1 className="display-type text-4xl mb-2">Services</h1>
+              <p className="text-gray-secondary">Manage your service offerings</p>
             </div>
 
         <motion.button
           onClick={() => setShowForm(!showForm)}
-          className="px-6 py-3 bg-gradient-to-r from-orange-primary to-red-orange text-white rounded-lg font-semibold"
+          className="px-6 py-3 bg-orange-primary text-black rounded-full font-semibold hover:shadow-[0_0_24px_rgba(255,106,0,0.45)] transition-shadow"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
@@ -130,7 +114,7 @@ export default function AdminServices() {
       {/* Add Service Form */}
       {showForm && (
         <motion.div
-          className="glass rounded-2xl p-8 border border-orange-primary/20 mb-12"
+          className="bg-surface rounded-2xl p-8 border border-white/10 mb-12"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
         >
@@ -142,7 +126,7 @@ export default function AdminServices() {
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-2 bg-dark-bg border border-orange-primary/20 rounded-lg text-gray-light focus:outline-none focus:border-orange-primary"
+                className="w-full px-4 py-2 bg-dark-bg border border-white/10 rounded-lg text-gray-light focus:outline-none focus:border-orange-primary"
                 required
               />
             </div>
@@ -153,7 +137,7 @@ export default function AdminServices() {
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={4}
-                className="w-full px-4 py-2 bg-dark-bg border border-orange-primary/20 rounded-lg text-gray-light focus:outline-none focus:border-orange-primary resize-none"
+                className="w-full px-4 py-2 bg-dark-bg border border-white/10 rounded-lg text-gray-light focus:outline-none focus:border-orange-primary resize-none"
                 required
               />
             </div>
@@ -164,14 +148,14 @@ export default function AdminServices() {
                 type="text"
                 value={formData.icon}
                 onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                className="w-full px-4 py-2 bg-dark-bg border border-orange-primary/20 rounded-lg text-gray-light focus:outline-none focus:border-orange-primary text-3xl"
+                className="w-full px-4 py-2 bg-dark-bg border border-white/10 rounded-lg text-gray-light focus:outline-none focus:border-orange-primary text-3xl"
                 maxLength={2}
               />
             </div>
 
             <button
               type="submit"
-              className="w-full px-6 py-3 bg-gradient-to-r from-orange-primary to-red-orange text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-orange-primary/50 transition-all"
+              className="w-full px-6 py-3 bg-orange-primary text-black rounded-full font-semibold hover:shadow-[0_0_24px_rgba(255,106,0,0.45)] transition-shadow"
             >
               Add Service
             </button>
@@ -193,7 +177,7 @@ export default function AdminServices() {
           services.map((service, index) => (
             <motion.div
               key={service.id}
-              className="glass rounded-2xl p-6 border border-orange-primary/20 group hover:border-orange-primary/50 transition-all"
+              className="bg-surface rounded-2xl p-6 border border-white/10 group hover:border-orange-primary/50 transition-all"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: index * 0.05 }}
@@ -216,7 +200,7 @@ export default function AdminServices() {
             <p className="text-gray-light/60 mb-4">No services yet</p>
             <button
               onClick={() => setShowForm(true)}
-              className="px-6 py-2 bg-orange-primary text-white rounded-lg hover:bg-orange-bright transition-colors"
+              className="px-6 py-2 bg-orange-primary text-black rounded-full hover:shadow-[0_0_24px_rgba(255,106,0,0.45)] transition-shadow"
             >
               Create Your First Service
             </button>

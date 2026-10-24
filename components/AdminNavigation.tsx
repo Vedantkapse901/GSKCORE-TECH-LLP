@@ -4,6 +4,8 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { adminLogout } from '@/lib/api'
 
 const adminMenuItems = [
   { label: 'Dashboard', href: '/admin', icon: '📊' },
@@ -16,11 +18,20 @@ const adminMenuItems = [
 
 export default function AdminNavigation() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+  const router = useRouter()
+
+  const handleLogout = async () => {
+    try {
+      await adminLogout()
+    } finally {
+      router.push('/admin/login')
+    }
+  }
 
   return (
     <>
       {/* Top Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-40 backdrop-blur-lg bg-dark-bg/90 border-b border-orange-primary/20">
+      <nav className="fixed top-0 left-0 right-0 z-40 bg-dark-bg/95 border-b border-white/10">
         <div className="px-4 py-4 flex items-center justify-between">
           <Link href="/admin" className="w-12 h-12 relative">
             <Image
@@ -31,8 +42,8 @@ export default function AdminNavigation() {
             />
           </Link>
 
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-primary to-orange-bright bg-clip-text text-transparent">
-            Admin Panel
+          <h1 className="text-xs font-semibold tracking-[0.3em] text-gray-secondary uppercase">
+            Admin <span className="text-orange-primary">Panel</span>
           </h1>
 
           <motion.div
@@ -40,8 +51,13 @@ export default function AdminNavigation() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
-            <span className="text-gray-light/60 text-sm">Welcome Admin</span>
-            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-orange-primary to-orange-bright" />
+            <span className="text-gray-secondary text-sm hidden sm:inline">Welcome Admin</span>
+            <button
+              onClick={handleLogout}
+              className="text-sm font-medium text-gray-secondary hover:text-orange-primary transition-colors"
+            >
+              Log Out
+            </button>
           </motion.div>
         </div>
       </nav>

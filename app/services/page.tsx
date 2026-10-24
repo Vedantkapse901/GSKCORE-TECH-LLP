@@ -4,20 +4,12 @@ import { motion } from 'framer-motion'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
-
-interface Service {
-  id: string
-  name: string
-  title: string
-  description: string
-  icon: string
-  created_at: string
-}
+import { getServices, type Service } from '@/lib/api'
 
 export default function ServicesPage() {
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
+  const [activeId, setActiveId] = useState<number | null>(null)
 
   useEffect(() => {
     fetchServices()
@@ -26,13 +18,8 @@ export default function ServicesPage() {
   const fetchServices = async () => {
     try {
       setLoading(true)
-      const { data, error } = await supabase
-        .from('services')
-        .select('*')
-        .order('created_at', { ascending: true })
-
-      if (error) throw error
-      setServices(data || [])
+      const data = await getServices()
+      setServices(data)
     } catch (error) {
       console.error('Error fetching services:', error)
     } finally {
@@ -44,81 +31,122 @@ export default function ServicesPage() {
     <main className="w-full bg-dark-bg">
       <Navigation />
 
-      {/* Hero Section */}
-      <section className="relative w-full min-h-screen bg-gradient-to-b from-dark-surface to-dark-bg pt-56 pb-20">
-        <div className="max-w-7xl mx-auto px-4">
-          <motion.div
-            className="text-center mb-20"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-              Our <span className="bg-gradient-to-r from-orange-primary to-orange-bright bg-clip-text text-transparent">Services</span>
-            </h1>
-            <p className="text-gray-light/70 max-w-3xl mx-auto text-xl">
-              Comprehensive solutions tailored to transform your business. Hover over any service to explore what we offer.
-            </p>
-          </motion.div>
+      {/* Page header */}
+      <section className="relative w-full pt-40 pb-20 px-6 sm:px-10 lg:px-16 border-b border-white/10">
+        <motion.p
+          className="text-xs font-semibold tracking-[0.3em] text-orange-primary mb-6 uppercase"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          What we do
+        </motion.p>
+        <motion.h1
+          className="display-type text-5xl md:text-7xl text-gray-light mb-8 max-w-4xl"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          Services built for <span className="text-orange-primary">real problems.</span>
+        </motion.h1>
+        <motion.p
+          className="text-lg text-gray-secondary max-w-xl"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          Hover — or tap — any service below to see what it actually involves and the kind of
+          problem it solves.
+        </motion.p>
+      </section>
 
-          {/* Services Grid */}
+      {/* Services list */}
+      <section className="w-full px-6 sm:px-10 lg:px-16 py-20">
+        <div className="max-w-5xl mx-auto">
           {loading ? (
-            <div className="text-center py-20">
-              <p className="text-gray-light/60">Loading services...</p>
-            </div>
+            <div className="py-12 text-gray-secondary">Loading services…</div>
           ) : services.length > 0 ? (
-            <motion.div
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-            >
+            <ul>
               {services.map((service, index) => (
-                <motion.div
+                <motion.li
                   key={service.id}
-                  className="glass rounded-2xl p-8 text-center group cursor-pointer"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{
-                    y: -10,
-                    boxShadow: '0 0 30px rgba(255, 107, 53, 0.2)',
-                  }}
+                  className="border-b border-white/10 first:border-t"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.04 }}
                 >
-                  <div className="text-6xl mb-4">{service.icon}</div>
-                  <h3 className="text-2xl font-bold mb-2 group-hover:text-orange-primary transition-colors">
-                    {service.name}
-                  </h3>
-                  <p className="text-gray-light/70 text-sm mb-3">{service.title}</p>
-                  <p className="text-gray-light/60">{service.description}</p>
-                </motion.div>
+                  <button
+                    className="w-full text-left py-8 flex items-center gap-6 group"
+                    onClick={() => setActiveId((id) => (id === service.id ? null : service.id))}
+                    aria-expanded={activeId === service.id}
+                  >
+                    <span className="section-index text-sm text-gray-secondary w-10 shrink-0">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    {service.icon && <span className="text-3xl shrink-0 hidden sm:block">{service.icon}</span>}
+                    <span className="flex-1 min-w-0 text-2xl md:text-3xl font-bold text-gray-light group-hover:text-orange-primary transition-colors">
+                      {service.name}
+                    </span>
+                    <span
+                      className="text-orange-primary text-2xl transition-transform duration-300 shrink-0"
+                      style={{ transform: activeId === service.id ? 'rotate(45deg)' : 'rotate(0deg)' }}
+                      aria-hidden="true"
+                    >
+                      +
+                    </span>
+                  </button>
+                  <div
+                    className="grid transition-all duration-300 overflow-hidden"
+                    style={{ gridTemplateRows: activeId === service.id ? '1fr' : '0fr' }}
+                  >
+                    <div className="overflow-hidden">
+                      <div className="pb-8 pl-16 pr-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
+                        <p className="text-gray-secondary leading-relaxed max-w-2xl flex-1 min-w-0">
+                          {service.title && (
+                            <span className="text-orange-primary font-medium">{service.title}. </span>
+                          )}
+                          {service.description}
+                        </p>
+                        <a
+                          href="/contact"
+                          className="inline-flex items-center gap-2 text-gray-light hover:text-orange-primary transition-colors font-medium whitespace-nowrap shrink-0"
+                        >
+                          Start a conversation →
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </motion.li>
               ))}
-            </motion.div>
+            </ul>
           ) : (
-            <div className="text-center py-20">
-              <p className="text-gray-light/60">No services available yet</p>
+            <div className="py-12 text-gray-secondary">
+              Services are managed from the admin panel — none published yet.
             </div>
           )}
-
-
-          {/* CTA */}
-          <motion.div
-            className="mt-20 text-center"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-3xl font-bold mb-8">Ready to get started?</h2>
-            <motion.a
-              href="/contact"
-              className="inline-block px-10 py-4 bg-gradient-to-r from-orange-primary to-red-orange rounded-lg font-semibold text-lg hover:shadow-lg hover:shadow-orange-primary/50 transition-all"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Schedule a Consultation
-            </motion.a>
-          </motion.div>
         </div>
+      </section>
+
+      {/* CTA */}
+      <section className="w-full px-6 sm:px-10 lg:px-16 py-24 border-t border-white/10 text-center">
+        <motion.h2
+          className="display-type text-4xl md:text-5xl text-gray-light mb-8"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+        >
+          Ready to get started?
+        </motion.h2>
+        <motion.a
+          href="/contact"
+          className="inline-block px-10 py-4 rounded-full bg-orange-primary text-black font-semibold text-lg hover:shadow-[0_0_30px_rgba(255,106,0,0.5)] transition-shadow"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.1 }}
+        >
+          Schedule a Consultation
+        </motion.a>
       </section>
 
       <Footer />

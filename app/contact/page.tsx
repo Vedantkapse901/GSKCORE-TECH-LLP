@@ -4,19 +4,19 @@ import { motion } from 'framer-motion'
 import { useState } from 'react'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
-import { supabase } from '@/lib/supabase'
+import { submitContact } from '@/lib/api'
 
 const contactMethods = [
   {
     icon: '📧',
     title: 'Email',
-    value: 'hello@gskcore.com',
+    value: 'gskcoretech@gmail.com',
     description: 'Send us an email and we\'ll respond within 24 hours',
   },
   {
     icon: '📱',
     title: 'Phone',
-    value: '+91 9876 543 210',
+    value: '+91 83698 13323',
     description: 'Call us for immediate assistance',
   },
   {
@@ -49,19 +49,12 @@ export default function ContactPage() {
 
     try {
       setLoading(true)
-      const { error } = await supabase
-        .from('contact_submissions')
-        .insert([
-          {
-            name: formData.name,
-            email: formData.email,
-            subject: formData.subject,
-            message: formData.message,
-            created_at: new Date().toISOString(),
-          },
-        ])
-
-      if (error) throw error
+      await submitContact({
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject,
+        message: formData.message,
+      })
 
       setSubmitted(true)
       setFormData({ name: '', email: '', subject: '', message: '' })
