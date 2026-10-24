@@ -23,6 +23,11 @@ define('UPLOADS_DIR', __DIR__ . '/uploads');
 // --- Contact form notifications ---
 // Where new enquiries get emailed.
 define('NOTIFY_EMAIL', 'gskcoretech@gmail.com');
-// The "From" address for that notification — use an address at your own
-// domain (not gmail.com) so mail servers don't flag it as spoofed.
-define('NOTIFY_FROM', 'noreply@gskcoretech.com');
+
+// --- SMTP (sends via a real mailbox so Gmail doesn't reject it as
+// unauthenticated — PHP's bare mail() function fails this on most hosts) ---
+define('SMTP_HOST', 'localhost'); // try 'mail.gskcoretech.com' if localhost doesn't work
+define('SMTP_PORT', 587);
+define('SMTP_SECURE', 'tls'); // 'tls' for port 587, 'ssl' for port 465
+define('SMTP_USER', 'noreply@gskcoretech.com'); // the mailbox you created
+define('SMTP_PASS', 'REPLACE_ME'); // that mailbox's password
