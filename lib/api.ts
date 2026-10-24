@@ -16,8 +16,9 @@ export interface Project {
   category: string
   description: string
   status: string
-  website_url: string
+  website_url: string | null
   logo_url: string | null
+  screenshot_url: string | null
   created_at: string
 }
 

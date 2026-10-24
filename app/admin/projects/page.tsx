@@ -23,6 +23,8 @@ export default function AdminProjects() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [logoPreview, setLogoPreview] = useState<string>('')
+  const [screenshotFile, setScreenshotFile] = useState<File | null>(null)
+  const [screenshotPreview, setScreenshotPreview] = useState<string>('')
   const [formData, setFormData] = useState({
     company_name: '',
     name: '',
@@ -30,6 +32,7 @@ export default function AdminProjects() {
     description: '',
     website_url: '',
     logo_url: '',
+    screenshot_url: '',
     status: 'Completed',
   })
 
@@ -71,14 +74,30 @@ export default function AdminProjects() {
     reader.readAsDataURL(file)
   }
 
+  const handleScreenshotChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setScreenshotFile(file)
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      setScreenshotPreview(e.target?.result as string)
+    }
+    reader.readAsDataURL(file)
+  }
+
   const handleSubmitProject = async (e: React.FormEvent) => {
     e.preventDefault()
 
     try {
       let logoUrl = formData.logo_url
+      let screenshotUrl = formData.screenshot_url
 
       if (logoFile) {
         logoUrl = await uploadLogoFile(logoFile)
+      }
+      if (screenshotFile) {
+        screenshotUrl = await uploadLogoFile(screenshotFile)
       }
 
       // If the chosen category isn't in the list yet, save it so it shows up next time.
@@ -91,8 +110,9 @@ export default function AdminProjects() {
         name: formData.name,
         category: formData.category,
         description: formData.description,
-        website_url: formData.website_url,
-        logo_url: logoUrl,
+        website_url: formData.website_url || null,
+        logo_url: logoUrl || null,
+        screenshot_url: screenshotUrl || null,
         status: formData.status,
       }
 
@@ -111,10 +131,13 @@ export default function AdminProjects() {
         description: '',
         website_url: '',
         logo_url: '',
+        screenshot_url: '',
         status: 'Completed',
       })
       setLogoFile(null)
       setLogoPreview('')
+      setScreenshotFile(null)
+      setScreenshotPreview('')
       setShowForm(false)
       setEditingId(null)
       fetchProjects()
@@ -134,10 +157,13 @@ export default function AdminProjects() {
       description: project.description || '',
       website_url: project.website_url || '',
       logo_url: project.logo_url || '',
+      screenshot_url: project.screenshot_url || '',
       status: project.status || 'Completed',
     })
     setLogoFile(null)
     setLogoPreview(project.logo_url || '')
+    setScreenshotFile(null)
+    setScreenshotPreview(project.screenshot_url || '')
     setEditingId(project.id)
     setShowForm(true)
   }
@@ -150,10 +176,13 @@ export default function AdminProjects() {
       description: '',
       website_url: '',
       logo_url: '',
+      screenshot_url: '',
       status: 'Completed',
     })
     setLogoFile(null)
     setLogoPreview('')
+    setScreenshotFile(null)
+    setScreenshotPreview('')
     setShowForm(false)
     setEditingId(null)
   }
@@ -325,7 +354,7 @@ export default function AdminProjects() {
 
             <div>
               <label className="block text-sm font-semibold mb-2">
-                Website URL
+                Website / Store Link <span className="text-gray-secondary font-normal">(optional — e.g. for apps without a web page)</span>
               </label>
               <input
                 type="url"
@@ -334,8 +363,7 @@ export default function AdminProjects() {
                   setFormData({ ...formData, website_url: e.target.value })
                 }
                 className="w-full px-4 py-2 bg-dark-bg border border-white/10 rounded-lg text-gray-light focus:outline-none focus:border-orange-primary"
-                placeholder="https://example.com"
-                required
+                placeholder="https://example.com or an App Store / Play Store link"
               />
             </div>
 
@@ -355,6 +383,30 @@ export default function AdminProjects() {
                     src={logoPreview}
                     alt="Logo preview"
                     className="max-h-32 max-w-xs rounded-lg"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold mb-2">
+                Screenshot{' '}
+                <span className="text-gray-secondary font-normal">
+                  (shown as the preview on the Work page — required for apps, since we can&apos;t live-embed those)
+                </span>
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleScreenshotChange}
+                className="w-full px-4 py-2 bg-dark-bg border border-white/10 rounded-lg text-gray-light focus:outline-none focus:border-orange-primary"
+              />
+              {screenshotPreview && (
+                <div className="mt-4 flex justify-center">
+                  <img
+                    src={screenshotPreview}
+                    alt="Screenshot preview"
+                    className="max-h-48 rounded-lg border border-white/10"
                   />
                 </div>
               )}
@@ -423,15 +475,19 @@ export default function AdminProjects() {
                       </span>
                     </div>
                     <div className="text-sm">
-                      <a
-                        href={project.website_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-orange-primary hover:text-orange-bright transition-colors truncate max-w-xs block"
-                        title={project.website_url}
-                      >
-                        🔗 Visit
-                      </a>
+                      {project.website_url ? (
+                        <a
+                          href={project.website_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-orange-primary hover:text-orange-bright transition-colors truncate max-w-xs block"
+                          title={project.website_url}
+                        >
+                          🔗 Visit
+                        </a>
+                      ) : (
+                        <span className="text-gray-light/40">—</span>
+                      )}
                     </div>
                     <div className="flex gap-2">
                       <motion.button

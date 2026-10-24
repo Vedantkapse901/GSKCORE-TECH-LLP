@@ -3,13 +3,15 @@
 import { motion } from 'framer-motion'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
-import { useEffect, useState } from 'react'
+import ServiceCodeCard from '@/components/ServiceCodeCard'
+import { useEffect, useRef, useState } from 'react'
 import { getServices, type Service } from '@/lib/api'
 
 export default function ServicesPage() {
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeId, setActiveId] = useState<number | null>(null)
+  const [typingIndex, setTypingIndex] = useState(-1)
+  const sequenceStarted = useRef(false)
 
   useEffect(() => {
     fetchServices()
@@ -54,74 +56,40 @@ export default function ServicesPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          Hover — or tap — any service below to see what it actually involves and the kind of
-          problem it solves.
+          Tap &quot;solves&quot; on any service below to see the kind of problem it actually
+          addresses.
         </motion.p>
       </section>
 
-      {/* Services list */}
+      {/* Services grid — code-editor styled cards */}
       <section className="w-full px-6 sm:px-10 lg:px-16 py-20">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           {loading ? (
-            <div className="py-12 text-gray-secondary">Loading services…</div>
+            <div className="py-12 text-gray-secondary font-mono text-sm">$ loading services...</div>
           ) : services.length > 0 ? (
-            <ul>
+            <motion.div
+              className="grid grid-cols-1 md:grid-cols-2 gap-6"
+              onViewportEnter={() => {
+                if (!sequenceStarted.current) {
+                  sequenceStarted.current = true
+                  setTypingIndex(0)
+                }
+              }}
+              viewport={{ once: true, amount: 0.1 }}
+            >
               {services.map((service, index) => (
-                <motion.li
+                <ServiceCodeCard
                   key={service.id}
-                  className="border-b border-white/10 first:border-t"
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.04 }}
-                >
-                  <button
-                    className="w-full text-left py-8 flex items-center gap-6 group"
-                    onClick={() => setActiveId((id) => (id === service.id ? null : service.id))}
-                    aria-expanded={activeId === service.id}
-                  >
-                    <span className="section-index text-sm text-gray-secondary w-10 shrink-0">
-                      {String(index + 1).padStart(2, '0')}
-                    </span>
-                    {service.icon && <span className="text-3xl shrink-0 hidden sm:block">{service.icon}</span>}
-                    <span className="flex-1 min-w-0 text-2xl md:text-3xl font-bold text-gray-light group-hover:text-orange-primary transition-colors">
-                      {service.name}
-                    </span>
-                    <span
-                      className="text-orange-primary text-2xl transition-transform duration-300 shrink-0"
-                      style={{ transform: activeId === service.id ? 'rotate(45deg)' : 'rotate(0deg)' }}
-                      aria-hidden="true"
-                    >
-                      +
-                    </span>
-                  </button>
-                  <div
-                    className="grid transition-all duration-300 overflow-hidden"
-                    style={{ gridTemplateRows: activeId === service.id ? '1fr' : '0fr' }}
-                  >
-                    <div className="overflow-hidden">
-                      <div className="pb-8 pl-16 pr-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
-                        <p className="text-gray-secondary leading-relaxed max-w-2xl flex-1 min-w-0">
-                          {service.title && (
-                            <span className="text-orange-primary font-medium">{service.title}. </span>
-                          )}
-                          {service.description}
-                        </p>
-                        <a
-                          href="/contact"
-                          className="inline-flex items-center gap-2 text-gray-light hover:text-orange-primary transition-colors font-medium whitespace-nowrap shrink-0"
-                        >
-                          Start a conversation →
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                </motion.li>
+                  service={service}
+                  index={index}
+                  active={typingIndex === index}
+                  onHeaderDone={() => setTypingIndex((i) => (i === index ? index + 1 : i))}
+                />
               ))}
-            </ul>
+            </motion.div>
           ) : (
-            <div className="py-12 text-gray-secondary">
-              Services are managed from the admin panel — none published yet.
+            <div className="py-12 text-gray-secondary font-mono text-sm">
+              // services are managed from the admin panel — none published yet.
             </div>
           )}
         </div>

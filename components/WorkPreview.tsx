@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { getProjects, type Project } from '@/lib/api'
+import WebsitePreview from '@/components/WebsitePreview'
 
 export default function WorkPreview() {
   const [projects, setProjects] = useState<Project[]>([])
@@ -13,7 +14,7 @@ export default function WorkPreview() {
     const fetchProjects = async () => {
       try {
         const data = await getProjects()
-        setProjects(data.slice(0, 4))
+        setProjects(data.slice(0, 3))
       } catch (error) {
         console.error('Error fetching projects:', error)
       } finally {
@@ -41,46 +42,49 @@ export default function WorkPreview() {
         </motion.div>
 
         {loading ? (
-          <div className="py-12 text-gray-secondary">Loading work…</div>
+          <div className="py-12 text-gray-secondary font-mono text-sm">$ loading work...</div>
         ) : projects.length > 0 ? (
-          <ul>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {projects.map((project, index) => (
-              <motion.li
+              <motion.a
                 key={project.id}
-                className="border-b border-white/10 first:border-t"
+                href={project.website_url || '/portfolio'}
+                target={project.website_url ? '_blank' : undefined}
+                rel={project.website_url ? 'noopener noreferrer' : undefined}
+                className="group block rounded-xl border border-white/10 bg-[#0c0c0c] overflow-hidden hover:border-orange-primary/40 transition-colors"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: index * 0.06 }}
+                transition={{ delay: index * 0.08 }}
               >
-                <a
-                  href={project.website_url || '/portfolio'}
-                  target={project.website_url ? '_blank' : undefined}
-                  rel={project.website_url ? 'noopener noreferrer' : undefined}
-                  className="group flex flex-col md:flex-row md:items-center gap-3 md:gap-10 py-10"
-                >
-                  <span className="section-index text-sm text-gray-secondary w-10 shrink-0">
-                    {String(index + 1).padStart(2, '0')}
-                  </span>
-                  <span className="flex-1 min-w-0 block">
-                    <span className="block text-2xl md:text-4xl font-bold text-gray-light group-hover:text-orange-primary transition-colors">
-                      {project.name}
-                    </span>
-                    <span className="block text-gray-secondary mt-2 max-w-xl">{project.description}</span>
-                  </span>
-                  <span className="shrink-0 flex items-center gap-4">
-                    <span className="text-sm text-orange-primary font-medium whitespace-nowrap">{project.category}</span>
-                    <span className="text-orange-primary text-xl group-hover:translate-x-1 transition-transform" aria-hidden="true">
-                      ↗
-                    </span>
-                  </span>
-                </a>
-              </motion.li>
+                <div className="flex items-center gap-2 px-4 py-2.5 border-b border-white/10 bg-white/[0.03]">
+                  <div className="flex gap-1.5" aria-hidden="true">
+                    <span className="w-2 h-2 rounded-full bg-white/15" />
+                    <span className="w-2 h-2 rounded-full bg-white/15" />
+                    <span className="w-2 h-2 rounded-full bg-white/15" />
+                  </div>
+                  <div className="flex-1 min-w-0 px-2 py-0.5 rounded bg-dark-bg border border-white/5 text-[10px] text-gray-secondary truncate font-mono">
+                    {project.website_url ? project.website_url.replace(/^https?:\/\//, '') : project.name}
+                  </div>
+                </div>
+                <WebsitePreview
+                  url={project.website_url}
+                  screenshotUrl={project.screenshot_url}
+                  title={project.name}
+                  fallbackLabel={project.company_name}
+                />
+                <div className="p-4">
+                  <h3 className="text-lg font-bold text-gray-light group-hover:text-orange-primary transition-colors mb-1">
+                    {project.name}
+                  </h3>
+                  <p className="text-sm text-gray-secondary line-clamp-2">{project.description}</p>
+                </div>
+              </motion.a>
             ))}
-          </ul>
+          </div>
         ) : (
-          <div className="py-12 text-gray-secondary">
-            Projects are managed from the admin panel — none published yet.
+          <div className="py-12 text-gray-secondary font-mono text-sm">
+            // projects are managed from the admin panel — none published yet.
           </div>
         )}
 

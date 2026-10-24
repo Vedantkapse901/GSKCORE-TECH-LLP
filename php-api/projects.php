@@ -14,17 +14,18 @@ if ($method === 'GET') {
 if ($method === 'POST') {
   require_admin();
   $b = json_body();
-  foreach (['company_name', 'name', 'category', 'description', 'website_url'] as $field) {
+  // website_url is optional — apps without a live web page may rely on a screenshot instead.
+  foreach (['company_name', 'name', 'category', 'description'] as $field) {
     if (trim($b[$field] ?? '') === '') json_out(['error' => "$field is required"], 400);
   }
 
   $stmt = $db->prepare(
-    'INSERT INTO projects (company_name, name, category, description, status, website_url, logo_url)
-     VALUES (?, ?, ?, ?, ?, ?, ?)'
+    'INSERT INTO projects (company_name, name, category, description, status, website_url, logo_url, screenshot_url)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
   );
   $stmt->execute([
     $b['company_name'], $b['name'], $b['category'], $b['description'],
-    $b['status'] ?? 'Completed', $b['website_url'], $b['logo_url'] ?? null,
+    $b['status'] ?? 'Completed', $b['website_url'] ?? null, $b['logo_url'] ?? null, $b['screenshot_url'] ?? null,
   ]);
   json_out(['ok' => true, 'id' => $db->lastInsertId()], 201);
 }
@@ -35,12 +36,12 @@ if ($method === 'PUT') {
   $b = json_body();
 
   $stmt = $db->prepare(
-    'UPDATE projects SET company_name=?, name=?, category=?, description=?, status=?, website_url=?, logo_url=?
+    'UPDATE projects SET company_name=?, name=?, category=?, description=?, status=?, website_url=?, logo_url=?, screenshot_url=?
      WHERE id=?'
   );
   $stmt->execute([
     $b['company_name'], $b['name'], $b['category'], $b['description'],
-    $b['status'] ?? 'Completed', $b['website_url'], $b['logo_url'] ?? null, $id,
+    $b['status'] ?? 'Completed', $b['website_url'] ?? null, $b['logo_url'] ?? null, $b['screenshot_url'] ?? null, $id,
   ]);
   json_out(['ok' => true]);
 }

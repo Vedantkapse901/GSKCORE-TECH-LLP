@@ -1,11 +1,12 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { getServices } from '@/lib/api'
 
-const serviceLinks = [
+const fallbackServiceLinks = [
   'Website Design & Development',
   'Mobile App Development',
   'Custom Web Applications',
@@ -26,6 +27,17 @@ const socialLinks = [
 
 export default function Footer() {
   const beamRef = useRef<HTMLDivElement>(null)
+  const [serviceLinks, setServiceLinks] = useState<string[]>(fallbackServiceLinks)
+
+  useEffect(() => {
+    getServices()
+      .then((data) => {
+        if (data.length > 0) setServiceLinks(data.slice(0, 5).map((s) => s.name))
+      })
+      .catch(() => {
+        // keep the fallback list if the API is unreachable
+      })
+  }, [])
 
   useEffect(() => {
     const beam = beamRef.current

@@ -1,29 +1,36 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import IconCard from '@/components/IconCard'
 
 const reasons = [
   {
+    icon: '🧭',
     title: 'End-to-End Development',
     description: 'From first requirements through design, build, and launch — one team, one accountable process.',
   },
   {
+    icon: '👥',
     title: 'Business-First Thinking',
     description: 'We start with your goals and constraints, then choose the technology that actually fits them.',
   },
   {
+    icon: '💬',
     title: 'Direct Communication',
     description: 'Clear timelines, honest scoping, and no middlemen between you and the people building your product.',
   },
   {
+    icon: '🏗️',
     title: 'Maintainable Architecture',
     description: 'Code built to be extended, not just shipped — so your product can grow without a rewrite.',
   },
   {
+    icon: '✨',
     title: 'Thoughtful Interfaces',
     description: 'Interfaces designed around how people actually use the product, not just how it looks in a screenshot.',
   },
   {
+    icon: '🔧',
     title: 'Ongoing Support',
     description: 'Launch is a milestone, not an end point — we stay involved for maintenance and iteration.',
   },
@@ -31,43 +38,43 @@ const reasons = [
 
 export default function WhyChooseUs() {
   return (
-    <section className="relative w-full py-20 md:py-28 bg-dark-bg border-t border-white/10">
-      <div className="max-w-6xl mx-auto px-6 sm:px-10">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-16">
-          <motion.div
-            className="md:col-span-4"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <p className="text-xs font-semibold tracking-[0.3em] text-orange-primary mb-5 uppercase">
+    <section className="relative w-full py-20 md:py-28 bg-dark-bg border-t border-white/10 overflow-hidden">
+      <div
+        className="absolute -left-40 bottom-0 w-[28rem] h-[28rem] rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(255,106,0,0.1), transparent 70%)' }}
+      />
+
+      <div className="relative max-w-6xl mx-auto px-6 sm:px-10">
+        <motion.div
+          className="mb-16"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+        >
+          <div className="flex items-center gap-4 mb-5">
+            <p className="text-xs font-semibold tracking-[0.3em] text-orange-primary uppercase">
               Why GSKCORE TECH
             </p>
-            <h2 className="display-type text-4xl md:text-5xl text-gray-light sticky top-32">
-              Execution that matches <span className="text-orange-primary">the ambition.</span>
-            </h2>
-          </motion.div>
-
-          <div className="md:col-span-8">
-            {reasons.map((reason, index) => (
-              <motion.div
-                key={reason.title}
-                className="py-8 border-b border-white/10 first:border-t md:first:border-t-0 flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-10"
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <span className="section-index text-sm text-gray-secondary w-10 shrink-0">
-                  {String(index + 1).padStart(2, '0')}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-xl font-bold mb-1 text-gray-light">{reason.title}</h3>
-                  <p className="text-gray-secondary leading-relaxed max-w-lg">{reason.description}</p>
-                </div>
-              </motion.div>
-            ))}
+            <span className="h-px w-16 bg-orange-primary/40" />
           </div>
+          <h2 className="display-type text-4xl md:text-6xl text-gray-light">
+            Execution that matches <span className="text-orange-primary">the ambition.</span>
+          </h2>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {reasons.map((reason, index) => (
+            <IconCard
+              key={reason.title}
+              index={index}
+              icon={reason.icon}
+              title={reason.title}
+              description={reason.description}
+              href="/contact"
+              hrefLabel={`Start a project — ${reason.title}`}
+              delay={index * 0.06}
+            />
+          ))}
         </div>
       </div>
     </section>

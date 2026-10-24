@@ -5,6 +5,7 @@ import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
 import { useEffect, useState } from 'react'
 import { getProjects, type Project } from '@/lib/api'
+import WebsitePreview from '@/components/WebsitePreview'
 
 export default function PortfolioPage() {
   const [projects, setProjects] = useState<Project[]>([])
@@ -79,49 +80,65 @@ export default function PortfolioPage() {
         </motion.div>
       </section>
 
-      {/* Projects list */}
+      {/* Projects grid — browser-mockup cards */}
       <section className="w-full px-6 sm:px-10 lg:px-16 py-16">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           {loading ? (
-            <div className="py-12 text-gray-secondary">Loading projects…</div>
+            <div className="py-12 text-gray-secondary font-mono text-sm">$ loading projects...</div>
           ) : filteredProjects.length > 0 ? (
-            <ul>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {filteredProjects.map((project, index) => (
-                <motion.li
+                <motion.a
                   key={project.id}
-                  className="border-b border-white/10 first:border-t"
-                  initial={{ opacity: 0, y: 20 }}
+                  href={project.website_url || undefined}
+                  target={project.website_url ? '_blank' : undefined}
+                  rel={project.website_url ? 'noopener noreferrer' : undefined}
+                  className="group block"
+                  style={{ perspective: 1000 }}
+                  initial={{ opacity: 0, y: 24 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ delay: index * 0.05 }}
+                  transition={{ delay: index * 0.06 }}
                 >
-                  <a
-                    href={project.website_url || undefined}
-                    target={project.website_url ? '_blank' : undefined}
-                    rel={project.website_url ? 'noopener noreferrer' : undefined}
-                    className="group flex flex-col md:flex-row md:items-center gap-4 md:gap-10 py-10"
+                  <motion.div
+                    className="rounded-xl border border-white/10 bg-[#0c0c0c] overflow-hidden group-hover:border-orange-primary/40 transition-colors"
+                    whileHover={{ rotateX: 2, rotateY: -2, scale: 1.015 }}
+                    transition={{ type: 'spring', stiffness: 200, damping: 18 }}
                   >
-                    <span className="section-index text-sm text-gray-secondary w-10 shrink-0">
-                      {String(index + 1).padStart(2, '0')}
-                    </span>
+                    {/* Browser chrome */}
+                    <div className="flex items-center gap-3 px-4 py-3 border-b border-white/10 bg-white/[0.03]">
+                      <div className="flex gap-1.5" aria-hidden="true">
+                        <span className="w-2.5 h-2.5 rounded-full bg-white/15" />
+                        <span className="w-2.5 h-2.5 rounded-full bg-white/15" />
+                        <span className="w-2.5 h-2.5 rounded-full bg-white/15" />
+                      </div>
+                      <div className="flex-1 min-w-0 px-3 py-1 rounded-md bg-dark-bg border border-white/5 text-[11px] text-gray-secondary truncate font-mono">
+                        {project.website_url
+                          ? project.website_url.replace(/^https?:\/\//, '')
+                          : project.screenshot_url
+                          ? project.name
+                          : 'no link available'}
+                      </div>
+                    </div>
 
-                    {project.logo_url ? (
-                      <img
-                        src={project.logo_url}
-                        alt={project.company_name}
-                        className="h-12 w-12 object-contain shrink-0 rounded-lg bg-white/5 p-2"
-                      />
-                    ) : (
-                      <div className="h-12 w-12 shrink-0" />
-                    )}
+                    {/* Live preview of the actual site, or a screenshot for apps */}
+                    <WebsitePreview
+                      url={project.website_url}
+                      screenshotUrl={project.screenshot_url}
+                      title={project.name}
+                      fallbackLabel={project.company_name}
+                    />
+                  </motion.div>
 
-                    <span className="flex-1 min-w-0 block">
-                      <span className="flex items-center gap-3 flex-wrap mb-1">
-                        <span className="text-2xl md:text-4xl font-bold text-gray-light group-hover:text-orange-primary transition-colors">
+                  {/* Details below the mockup */}
+                  <div className="pt-5 flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <h3 className="text-xl font-bold text-gray-light group-hover:text-orange-primary transition-colors">
                           {project.name}
-                        </span>
+                        </h3>
                         <span
-                          className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                          className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
                             project.status === 'Completed'
                               ? 'bg-green-500/15 text-green-400'
                               : project.status === 'Pending'
@@ -131,32 +148,26 @@ export default function PortfolioPage() {
                         >
                           {project.status}
                         </span>
+                      </div>
+                      <p className="text-sm text-orange-primary font-medium mb-2">{project.company_name}</p>
+                      <p className="text-gray-secondary text-sm">{project.description}</p>
+                    </div>
+                    {project.website_url && (
+                      <span
+                        className="shrink-0 mt-1 text-orange-primary text-lg group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform"
+                        aria-hidden="true"
+                      >
+                        ↗
                       </span>
-                      <span className="block text-sm text-orange-primary font-medium mb-2">
-                        {project.company_name}
-                      </span>
-                      <span className="block text-gray-secondary max-w-xl">{project.description}</span>
-                    </span>
-
-                    <span className="shrink-0 flex items-center gap-4">
-                      <span className="text-sm text-gray-secondary font-medium whitespace-nowrap">
-                        {project.category}
-                      </span>
-                      {project.website_url && (
-                        <span
-                          className="text-orange-primary text-xl group-hover:translate-x-1 transition-transform"
-                          aria-hidden="true"
-                        >
-                          ↗
-                        </span>
-                      )}
-                    </span>
-                  </a>
-                </motion.li>
+                    )}
+                  </div>
+                </motion.a>
               ))}
-            </ul>
+            </div>
           ) : (
-            <div className="py-12 text-gray-secondary">No projects in this category yet.</div>
+            <div className="py-12 text-gray-secondary font-mono text-sm">
+              // no projects in this category yet.
+            </div>
           )}
         </div>
       </section>
